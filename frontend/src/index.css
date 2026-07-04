@@ -1,0 +1,307 @@
+/* ============================================================
+   PostureGuard — Global Styles
+   Design System: Wellness Journal / Paper Texture Aesthetic
+   ============================================================ */
+
+/* Google Fonts loaded via index.html <link> tags */
+
+/* ─── Design Tokens ─────────────────────────────────────────── */
+:root {
+  --cream:         #F5F0E8;
+  --cream-dark:    #EDE6D6;
+  --purple:        #7B5EA7;
+  --purple-light:  #B89FD4;
+  --purple-muted:  #EDE8F5;
+  --green:         #5A8A6A;
+  --green-light:   #A8C9B0;
+  --green-muted:   #EBF3ED;
+  --text-dark:     #2C2416;
+  --text-mid:      #6B5B45;
+  --text-light:    #A0907A;
+
+  --radius-sm:     8px;
+  --radius-md:     12px;
+  --radius-lg:     16px;
+  --radius-xl:     24px;
+
+  --shadow-card:   0 2px 12px rgba(0, 0, 0, 0.06);
+  --shadow-hover:  0 4px 20px rgba(0, 0, 0, 0.10);
+
+  --transition-fast:   150ms ease;
+  --transition-normal: 250ms ease;
+  --transition-slow:   400ms ease;
+
+  --font-display:  'Playfair Display', serif;
+  --font-body:     'DM Sans', sans-serif;
+  --font-mono:     'JetBrains Mono', monospace;
+}
+
+/* ─── Reset ─────────────────────────────────────────────────── */
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+/* ─── Body & Paper Texture ───────────────────────────────────── */
+body {
+  background-color: var(--cream);
+  color: var(--text-dark);
+  font-family: var(--font-body);
+  font-size: 15px;
+  line-height: 1.6;
+  min-height: 100vh;
+  position: relative;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Subtle paper noise texture via SVG data URI */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0.035;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='300' height='300'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.75' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='300' height='300' filter='url(%23n)' opacity='1'/%3E%3C/svg%3E");
+  background-repeat: repeat;
+  background-size: 300px 300px;
+}
+
+#root {
+  position: relative;
+  z-index: 1;
+}
+
+/* ─── Card ───────────────────────────────────────────────────── */
+.card {
+  background: #ffffff;
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-card);
+  padding: 24px;
+  border: 1px solid var(--cream-dark);
+  transition: box-shadow var(--transition-normal);
+}
+
+.card:hover {
+  box-shadow: var(--shadow-hover);
+}
+
+.card-title {
+  font-family: var(--font-display);
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: var(--text-dark);
+  margin-bottom: 16px;
+  letter-spacing: 0.01em;
+}
+
+/* ─── Buttons ────────────────────────────────────────────────── */
+.btn-primary {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--purple);
+  color: #ffffff;
+  border: none;
+  border-radius: var(--radius-md);
+  padding: 10px 20px;
+  font-family: var(--font-body);
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background var(--transition-fast), transform var(--transition-fast), box-shadow var(--transition-fast);
+  box-shadow: 0 2px 8px rgba(123, 94, 167, 0.25);
+}
+
+.btn-primary:hover {
+  background: #6a4f92;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 14px rgba(123, 94, 167, 0.35);
+}
+
+.btn-primary:active {
+  transform: translateY(0);
+  box-shadow: 0 1px 4px rgba(123, 94, 167, 0.2);
+}
+
+.btn-primary:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.btn-secondary {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--cream-dark);
+  color: var(--text-dark);
+  border: 1px solid var(--cream-dark);
+  border-radius: var(--radius-md);
+  padding: 10px 20px;
+  font-family: var(--font-body);
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background var(--transition-fast), transform var(--transition-fast);
+}
+
+.btn-secondary:hover {
+  background: #e0d8c5;
+  transform: translateY(-1px);
+}
+
+.btn-secondary:active {
+  transform: translateY(0);
+}
+
+.btn-secondary:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.btn-sm {
+  padding: 6px 14px;
+  font-size: 0.8rem;
+  border-radius: var(--radius-sm);
+}
+
+/* ─── Status Colors ──────────────────────────────────────────── */
+.status-good {
+  color: var(--green);
+}
+
+.status-slouch {
+  color: var(--purple);
+}
+
+.status-forward_head {
+  color: var(--purple);
+}
+
+/* ─── Animations ─────────────────────────────────────────────── */
+@keyframes pulse {
+  0%   { transform: scale(1);    opacity: 1; }
+  50%  { transform: scale(1.08); opacity: 0.7; }
+  100% { transform: scale(1);    opacity: 1; }
+}
+
+@keyframes pulseRing {
+  0%   { box-shadow: 0 0 0 0   rgba(220, 60, 60, 0.5); }
+  70%  { box-shadow: 0 0 0 14px rgba(220, 60, 60, 0);   }
+  100% { box-shadow: 0 0 0 0   rgba(220, 60, 60, 0);   }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.3; }
+}
+
+/* ─── Grid Utilities ─────────────────────────────────────────── */
+.grid-2 {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 20px;
+}
+
+.grid-3 {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 20px;
+}
+
+@media (max-width: 768px) {
+  .grid-2,
+  .grid-3 {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ─── Custom Scrollbar ───────────────────────────────────────── */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--cream-dark);
+  border-radius: 100px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--purple-light);
+  border-radius: 100px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--purple);
+}
+
+/* Firefox */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--purple-light) var(--cream-dark);
+}
+
+/* ─── Typography ─────────────────────────────────────────────── */
+h1, h2, h3 {
+  font-family: var(--font-display);
+  line-height: 1.3;
+}
+
+code, .mono {
+  font-family: var(--font-mono);
+}
+
+/* ─── Misc Utilities ─────────────────────────────────────────── */
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+}
+
+.text-center { text-align: center; }
+.text-muted   { color: var(--text-light); font-size: 0.85rem; }
+.mt-8  { margin-top: 8px; }
+.mt-12 { margin-top: 12px; }
+.mt-16 { margin-top: 16px; }
+
+/* ─── Skeleton / Loading Placeholder ─────────────────────────── */
+.skeleton {
+  background: linear-gradient(90deg, var(--cream-dark) 25%, #f0ead8 50%, var(--cream-dark) 75%);
+  background-size: 200% 100%;
+  animation: skeletonShimmer 1.4s ease infinite;
+  border-radius: var(--radius-sm);
+}
+
+@keyframes skeletonShimmer {
+  0%   { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}

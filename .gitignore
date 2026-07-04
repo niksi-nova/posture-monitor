@@ -1,0 +1,24 @@
+# Environments
+venv/
+env/
+.env
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# Node
+node_modules/
+dist/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Models / Data (Optional based on project needs)
+# backend/data/
+# backend/models/
+
+# macOS
+.DS_Store

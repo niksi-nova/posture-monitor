@@ -1,0 +1,21 @@
+INFO:     Started server process [43179]
+INFO:     Waiting for application startup.
+2026-07-04 09:38:15  INFO      postureguard.app — === PostureGuard API starting up ===
+2026-07-04 09:38:15  INFO      postureguard.app — Ensured directories: /Users/anika/Documents/PROJECTS/aiml el v2/posture_monitor/backend/models, /Users/anika/Documents/PROJECTS/aiml el v2/posture_monitor/backend/data
+2026-07-04 09:38:15  INFO      pipeline.sensor_reader — Creating SyntheticSensorReader (SYNTHETIC=True).
+2026-07-04 09:38:15  INFO      pipeline.sensor_reader — SyntheticSensorReader initialised in state='good'.
+2026-07-04 09:38:15  INFO      pipeline.sensor_reader — Baseline loaded from /Users/anika/Documents/PROJECTS/aiml el v2/posture_monitor/backend/data/baseline.json
+2026-07-04 09:38:15  INFO      postureguard.app — Sensor reader created; baseline loaded from /Users/anika/Documents/PROJECTS/aiml el v2/posture_monitor/backend/data/baseline.json
+2026-07-04 09:38:15  INFO      postureguard.app — Sensor thread started (reader type: SyntheticSensorReader)
+2026-07-04 09:38:15  INFO      postureguard.app — Sensor thread launched (tid=6153056256)
+2026-07-04 09:38:15  WARNING   postureguard.app — Vision pipeline could not start: module 'mediapipe' has no attribute 'solutions'
+2026-07-04 09:38:17  INFO      postureguard.app — Sensor model loaded from /Users/anika/Documents/PROJECTS/aiml el v2/posture_monitor/backend/models/sensor_model.pkl
+2026-07-04 09:38:18  INFO      postureguard.app — Vision LSTM loaded from /Users/anika/Documents/PROJECTS/aiml el v2/posture_monitor/backend/models/vision_lstm.pt
+2026-07-04 09:38:18  INFO      postureguard.app — Model load result: {'sensor_loaded': True, 'vision_loaded': True}
+2026-07-04 09:38:18  INFO      pipeline.fusion — FusionEngine initialised (threshold=0.70, cooldown=30.0 s).
+2026-07-04 09:38:18  INFO      postureguard.app — FusionEngine ready
+2026-07-04 09:38:18  INFO      postureguard.app — === Startup complete — broadcasting at 15 Hz ===
+INFO:     Application startup complete.
+ERROR:    [Errno 48] error while attempting to bind on address ('127.0.0.1', 8000): [errno 48] address already in use
+INFO:     Waiting for application shutdown.
+INFO:     Application shutdown complete.

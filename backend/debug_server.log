@@ -1,0 +1,33 @@
+INFO:     Started server process [44792]
+INFO:     Waiting for application startup.
+2026-07-04 09:59:35  INFO      postureguard.app — === PostureGuard API starting up ===
+2026-07-04 09:59:35  INFO      postureguard.app — Ensured directories: /Users/anika/Documents/PROJECTS/aiml el v2/posture_monitor/backend/models, /Users/anika/Documents/PROJECTS/aiml el v2/posture_monitor/backend/data
+2026-07-04 09:59:35  INFO      pipeline.sensor_reader — Creating SyntheticSensorReader (SYNTHETIC=True).
+2026-07-04 09:59:35  INFO      pipeline.sensor_reader — SyntheticSensorReader initialised in state='good'.
+2026-07-04 09:59:35  INFO      pipeline.sensor_reader — Baseline loaded from /Users/anika/Documents/PROJECTS/aiml el v2/posture_monitor/backend/data/baseline.json
+2026-07-04 09:59:35  INFO      postureguard.app — Sensor reader created; baseline loaded from /Users/anika/Documents/PROJECTS/aiml el v2/posture_monitor/backend/data/baseline.json
+2026-07-04 09:59:35  INFO      postureguard.app — Sensor thread started (reader type: SyntheticSensorReader)
+2026-07-04 09:59:35  INFO      postureguard.app — Sensor thread launched (tid=6174879744)
+WARNING: All log messages before absl::InitializeLog() is called are written to STDERR
+I0000 00:00:1783139375.689242 22736704 gl_context.cc:357] GL version: 2.1 (2.1 Metal - 90.5), renderer: Apple M5
+2026-07-04 09:59:35  INFO      pipeline.vision_pipeline — VisionPipeline: background thread started.
+2026-07-04 09:59:35  INFO      pipeline.vision_pipeline — Module-level VisionPipeline singleton created and started.
+2026-07-04 09:59:35  INFO      postureguard.app — Vision pipeline started: VisionPipeline
+INFO: Created TensorFlow Lite XNNPACK delegate for CPU.
+W0000 00:00:1783139375.786625 22736781 inference_feedback_manager.cc:114] Feedback manager requires a model with a single signature inference. Disabling support for feedback tensors.
+W0000 00:00:1783139375.796223 22736781 inference_feedback_manager.cc:114] Feedback manager requires a model with a single signature inference. Disabling support for feedback tensors.
+2026-07-04 09:59:37  INFO      pipeline.vision_pipeline — VisionPipeline: camera 0 opened at target 30 fps.
+/Users/anika/Documents/PROJECTS/aiml el v2/posture_monitor/venv/lib/python3.12/site-packages/google/protobuf/symbol_database.py:55: UserWarning: SymbolDatabase.GetPrototype() is deprecated. Please use message_factory.GetMessageClass() instead. SymbolDatabase.GetPrototype() will be removed soon.
+  warnings.warn('SymbolDatabase.GetPrototype() is deprecated. Please '
+2026-07-04 09:59:38  INFO      postureguard.app — Sensor model loaded from /Users/anika/Documents/PROJECTS/aiml el v2/posture_monitor/backend/models/sensor_model.pkl
+/Users/anika/Documents/PROJECTS/aiml el v2/posture_monitor/venv/lib/python3.12/site-packages/google/protobuf/symbol_database.py:55: UserWarning: SymbolDatabase.GetPrototype() is deprecated. Please use message_factory.GetMessageClass() instead. SymbolDatabase.GetPrototype() will be removed soon.
+  warnings.warn('SymbolDatabase.GetPrototype() is deprecated. Please '
+/Users/anika/Documents/PROJECTS/aiml el v2/posture_monitor/venv/lib/python3.12/site-packages/google/protobuf/symbol_database.py:55: UserWarning: SymbolDatabase.GetPrototype() is deprecated. Please use message_factory.GetMessageClass() instead. SymbolDatabase.GetPrototype() will be removed soon.
+  warnings.warn('SymbolDatabase.GetPrototype() is deprecated. Please '
+2026-07-04 09:59:39  INFO      postureguard.app — Vision LSTM loaded from /Users/anika/Documents/PROJECTS/aiml el v2/posture_monitor/backend/models/vision_lstm.pt
+2026-07-04 09:59:39  INFO      postureguard.app — Model load result: {'sensor_loaded': True, 'vision_loaded': True}
+2026-07-04 09:59:39  INFO      pipeline.fusion — FusionEngine initialised (threshold=0.70, cooldown=30.0 s).
+2026-07-04 09:59:39  INFO      postureguard.app — FusionEngine ready
+2026-07-04 09:59:39  INFO      postureguard.app — === Startup complete — broadcasting at 15 Hz ===
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://127.0.0.1:8000 (Press CTRL+C to quit)

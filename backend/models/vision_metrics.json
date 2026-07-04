@@ -1,0 +1,26 @@
+{
+  "accuracy": 1.0,
+  "f1_macro": 1.0,
+  "confusion_matrix": [
+    [
+      598,
+      0,
+      0
+    ],
+    [
+      0,
+      598,
+      0
+    ],
+    [
+      0,
+      0,
+      598
+    ]
+  ],
+  "train_epochs": 28,
+  "final_train_loss": 0.0032,
+  "final_val_loss": 0.0,
+  "n_train_windows": 8970,
+  "n_test_windows": 1794
+}
