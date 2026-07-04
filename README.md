@@ -369,3 +369,12 @@ This project is for academic purposes at RV College of Engineering.
 | WebSocket disconnected | Check backend is running; hard refresh browser |
 | MediaPipe import error | `pip install mediapipe --upgrade` inside venv |
 | `torch` not found | `pip install torch` inside venv (CPU build, ~200MB) |
+
+---
+## Software Development Notes (July 4th)
+During software testing before physical hardware integration, several overrides were implemented:
+1. **Synthetic Sensor is locked to 'Good' Posture**: (`backend/pipeline/sensor_reader.py`) This prevents the simulated sensor data from injecting "slouching" states while you test your live webcam. Once you plug in the ESP32, change `SYNTHETIC = False`.
+2. **Webcam Visibility Metric**: The MediaPipe vision pipeline now only checks visibility of your nose and shoulders, ignoring the hips (which are rarely visible on desktop webcams).
+3. **Dynamic Calibration Shifting**: The Vision AI Model mathematically offsets your real-time webcam data upon Calibration to match the AI's expected baseline. **You do not need to retrain the AI models just to test it!**
+4. **Faster Alert Testing**: (`backend/pipeline/fusion.py`) `ALERT_COOLDOWN_S` was lowered from `30.0` to `3.0` seconds so you can trigger multiple alerts rapidly.
+5. **How to Retrain**: Open the Web UI, expand the **Training** panel, click **Start Recording**, intentionally sit in Good/Slouching/Forward-Head postures as instructed by the UI, then hit the train buttons to generate new `.pt` and `.pkl` models!

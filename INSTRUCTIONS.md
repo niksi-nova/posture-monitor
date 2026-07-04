@@ -241,3 +241,23 @@ sudo usermod -aG dialout $USER
 
 *PostureGuard — RV College of Engineering AIML Project*  
 *Hardware Integration Guide v1.0*
+
+---
+
+## Important Software Updates (July 4th)
+Several backend logic adjustments were made to ensure the UI and ML models run reliably during testing before the real hardware is connected:
+
+1. **Synthetic Sensor is locked to 'Good' Posture**: 
+   In `backend/pipeline/sensor_reader.py`, `STATE_SEQUENCE` is locked to `["good"]`. This is so the simulated sensor data doesn't randomly inject "slouching" states while you try to test your physical live webcam. Once you plug in the ESP32, change `SYNTHETIC = False` and this lock will be ignored.
+   
+2. **Webcam Visibility Metric**: 
+   The MediaPipe vision pipeline now only checks visibility of your nose and shoulders. We removed the "hip visibility" requirement, as a desktop webcam rarely sees your hips.
+
+3. **Dynamic Calibration Shifting**: 
+   The Vision AI Model was trained on synthetic data expecting a perfect mathematical posture ratio. Your natural posture on webcam will be slightly different. When you click **Recalibrate** in the UI, the backend will now mathematically offset your real-time webcam data to match the AI's expected baseline. **You do not need to retrain the AI models just to test it!**
+   
+4. **Faster Alert Testing**:
+   In `backend/pipeline/fusion.py`, `ALERT_COOLDOWN_S` was lowered from `30.0` to `3.0` seconds so you can trigger multiple alerts rapidly in the UI while testing.
+
+5. **Retraining (Optional)**:
+   If you DO want to retrain on real data: open the Web UI, expand the **Training** panel, click **Start Recording**, intentionally sit in Good/Slouching/Forward-Head postures as instructed by the UI, then hit the train buttons to generate new `.pt` and `.pkl` models!

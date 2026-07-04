@@ -45,8 +45,8 @@ logger = logging.getLogger(__name__)
 # ---------------------------------------------------------------------------
 # Constants
 # ---------------------------------------------------------------------------
-DEFAULT_ALERT_THRESHOLD = 0.7    # Confidence threshold to trigger a posture alert
-ALERT_COOLDOWN_S = 30.0          # Minimum seconds between consecutive alerts
+DEFAULT_ALERT_THRESHOLD = 0.5    # Confidence threshold to trigger a posture alert (lowered for testing)
+ALERT_COOLDOWN_S = 3.0           # Minimum seconds between consecutive alerts (reduced for testing)
 CLASS_NAMES = ["good", "slouch", "forward_head"]
 GOOD_CLASS_IDX = 0               # Index of the "good" class in CLASS_NAMES
 
