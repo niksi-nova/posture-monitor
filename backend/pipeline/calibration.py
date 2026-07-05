@@ -61,7 +61,6 @@ class CalibrationResult:
         cervical:          Mean cervical ADC reading during calibration.
         thoracic:          Mean thoracic ADC reading.
         lumbar:            Mean lumbar ADC reading.
-        tlj:               Mean thoracolumbar junction ADC reading.
         calibrated_at:     ISO-8601 UTC timestamp of when calibration completed.
         vision_reference:  4-element list of mean vision features [fwd_head_ratio,
                            shoulder_tilt, torso_lean, ear_sh_ratio].
@@ -70,7 +69,6 @@ class CalibrationResult:
     cervical: float
     thoracic: float
     lumbar: float
-    tlj: float
     calibrated_at: str
     vision_reference: List[float] = field(default_factory=lambda: [0.0, 0.0, 0.0, 0.0])
 
@@ -120,7 +118,7 @@ def run_calibration(
     deadline = start_time + CALIBRATION_DURATION_S
 
     # Accumulators for sensor channels
-    acc: Dict[str, List[float]] = {"c": [], "th": [], "l": [], "tlj": []}
+    acc: Dict[str, List[float]] = {"c": [], "th": [], "l": []}
 
     # Vision feature accumulator (list of 4-element lists)
     vision_acc: List[List[float]] = []
@@ -140,7 +138,7 @@ def run_calibration(
             sample = None
 
         if sample is not None:
-            for ch in ("c", "th", "l", "tlj"):
+            for ch in ("c", "th", "l"):
                 if ch in sample:
                     acc[ch].append(float(sample[ch]))
             samples_collected += 1
@@ -198,7 +196,6 @@ def run_calibration(
     cervical  = _safe_mean(acc["c"],   POSTURE_TARGETS["good"]["c"][0])
     thoracic  = _safe_mean(acc["th"],  POSTURE_TARGETS["good"]["th"][0])
     lumbar    = _safe_mean(acc["l"],   POSTURE_TARGETS["good"]["l"][0])
-    tlj_val   = _safe_mean(acc["tlj"], POSTURE_TARGETS["good"]["tlj"][0])
 
     # --- Compute vision reference (average each of the 4 features) ---
     if vision_acc:
@@ -216,7 +213,6 @@ def run_calibration(
         cervical=round(cervical, 2),
         thoracic=round(thoracic, 2),
         lumbar=round(lumbar, 2),
-        tlj=round(tlj_val, 2),
         calibrated_at=datetime.now(tz=timezone.utc).isoformat(),
         vision_reference=[round(v, 4) for v in vision_reference],
     )
@@ -272,7 +268,7 @@ def is_calibrated() -> bool:
     Return True if a valid baseline.json exists on disk.
 
     A file is considered valid if it exists and contains at least the
-    'cervical', 'thoracic', 'lumbar', and 'tlj' keys.
+    'cervical', 'thoracic', and 'lumbar' keys.
 
     Returns:
         True if calibration file is present and parseable.
@@ -280,7 +276,7 @@ def is_calibrated() -> bool:
     data = load_baseline()
     if data is None:
         return False
-    required_keys = {"cervical", "thoracic", "lumbar", "tlj"}
+    required_keys = {"cervical", "thoracic", "lumbar"}
     return required_keys.issubset(data.keys())
 
 

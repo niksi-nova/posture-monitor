@@ -3,7 +3,6 @@ const SENSORS = [
   { key: 'c',   label: 'Cervical',               abbr: 'C' },
   { key: 'th',  label: 'Thoracic',               abbr: 'Th' },
   { key: 'l',   label: 'Lumbar',                 abbr: 'L' },
-  { key: 'tlj', label: 'Thoracolumbar Junction', abbr: 'TLJ' },
 ];
 
 // ── Clamp helper ──────────────────────────────────────────────────────────────

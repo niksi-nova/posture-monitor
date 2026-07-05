@@ -59,7 +59,7 @@ MLP_HIDDEN   = (64, 32)  # Two hidden layers
 MLP_MAX_ITER = 500
 
 # Feature and label configuration
-FEATURE_COLS = ["delta_c", "delta_th", "delta_l", "delta_tlj"]
+FEATURE_COLS = ["delta_c", "delta_th", "delta_l"]
 LABEL_MAP    = {"good": 0, "slouch": 1, "forward_head": 2}
 INVERSE_LABEL_MAP = {v: k for k, v in LABEL_MAP.items()}
 

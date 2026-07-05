@@ -65,7 +65,7 @@ if not Path(_VENV_PYTHON).exists():
     _VENV_PYTHON = str(Path(sys.executable))
 
 # Sensor keys used throughout the application
-SENSOR_KEYS: tuple[str, ...] = ("c", "th", "l", "tlj")
+SENSOR_KEYS: tuple[str, ...] = ("c", "th", "l")
 
 # ===========================================================================
 # MODULE-LEVEL APPLICATION STATE
@@ -324,7 +324,6 @@ def _rule_based_posture(delta: dict[str, float]) -> tuple[str, float, bool]:
     c_delta = delta.get("c", 0.0)
     th_delta = delta.get("th", 0.0)
     l_delta = delta.get("l", 0.0)
-    tlj_delta = delta.get("tlj", 0.0)
 
     # If both cervical and thoracic drop substantially → forward head
     if c_delta < -0.15 and th_delta < -0.10:
@@ -337,7 +336,7 @@ def _rule_based_posture(delta: dict[str, float]) -> tuple[str, float, bool]:
         return "slouch", round(confidence, 2), True
 
     # Good posture
-    magnitude = abs(c_delta) + abs(th_delta) + abs(l_delta) + abs(tlj_delta)
+    magnitude = abs(c_delta) + abs(th_delta) + abs(l_delta)
     confidence = max(0.5, 1.0 - magnitude)
     return "good", round(confidence, 2), False
 

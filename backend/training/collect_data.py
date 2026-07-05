@@ -15,7 +15,7 @@ Two modes of operation:
 Output CSVs are written to DATA_DIR/<label>_<session_id>.csv.
 
 CSV column schema (10 columns):
-    timestamp, delta_c, delta_th, delta_l, delta_tlj,
+    timestamp, delta_c, delta_th, delta_l,
     fwd_head_ratio, shoulder_tilt, torso_lean, ear_sh_ratio, label
 
 Usage::
@@ -63,7 +63,6 @@ _DEFAULT_BASELINE = {
     "c": 2200.0,
     "th": 2150.0,
     "l": 2300.0,
-    "tlj": 2200.0,
 }
 
 # ---------------------------------------------------------------------------
@@ -95,15 +94,15 @@ _VISION_PARAMS = {
 _SENSOR_PARAMS = {
     "good": {
         "c": (2250.0, 30.0), "th": (2150.0, 30.0),
-        "l": (2300.0, 30.0), "tlj": (2200.0, 30.0),
+        "l": (2300.0, 30.0),
     },
     "slouch": {
         "c": (2250.0, 50.0), "th": (1800.0, 40.0),
-        "l": (1600.0, 50.0), "tlj": (1650.0, 50.0),
+        "l": (1600.0, 50.0),
     },
     "forward_head": {
         "c": (1500.0, 50.0), "th": (1900.0, 40.0),
-        "l": (2250.0, 30.0), "tlj": (2200.0, 30.0),
+        "l": (2250.0, 30.0),
     },
 }
 
@@ -128,7 +127,7 @@ def generate_synthetic_session(label: str, session_id: str) -> pd.DataFrame:
         session_id: Unique string identifier for this session (used in logging).
 
     Returns:
-        DataFrame with columns: timestamp, delta_c, delta_th, delta_l, delta_tlj,
+        DataFrame with columns: timestamp, delta_c, delta_th, delta_l,
         fwd_head_ratio, shoulder_tilt, torso_lean, ear_sh_ratio, label.
 
     Raises:
@@ -147,19 +146,16 @@ def generate_synthetic_session(label: str, session_id: str) -> pd.DataFrame:
     c_adc   = rng.normal(sp["c"][0],   sp["c"][1],   n) + rng.normal(0, _EXTRA_NOISE_STD, n)
     th_adc  = rng.normal(sp["th"][0],  sp["th"][1],  n) + rng.normal(0, _EXTRA_NOISE_STD, n)
     l_adc   = rng.normal(sp["l"][0],   sp["l"][1],   n) + rng.normal(0, _EXTRA_NOISE_STD, n)
-    tlj_adc = rng.normal(sp["tlj"][0], sp["tlj"][1], n) + rng.normal(0, _EXTRA_NOISE_STD, n)
 
     # --- Clamp to valid 12-bit ADC range ---
     c_adc   = np.clip(c_adc,   0, 4095)
     th_adc  = np.clip(th_adc,  0, 4095)
     l_adc   = np.clip(l_adc,   0, 4095)
-    tlj_adc = np.clip(tlj_adc, 0, 4095)
 
     # --- Normalised deltas relative to default good-posture baseline ---
     delta_c   = (c_adc   - _DEFAULT_BASELINE["c"])   / _DEFAULT_BASELINE["c"]
     delta_th  = (th_adc  - _DEFAULT_BASELINE["th"])  / _DEFAULT_BASELINE["th"]
     delta_l   = (l_adc   - _DEFAULT_BASELINE["l"])   / _DEFAULT_BASELINE["l"]
-    delta_tlj = (tlj_adc - _DEFAULT_BASELINE["tlj"]) / _DEFAULT_BASELINE["tlj"]
 
     # --- Vision features (Gaussian, clamped to reasonable ranges) ---
     fwd_head_ratio = np.clip(
@@ -183,7 +179,6 @@ def generate_synthetic_session(label: str, session_id: str) -> pd.DataFrame:
         "delta_c":        delta_c,
         "delta_th":       delta_th,
         "delta_l":        delta_l,
-        "delta_tlj":      delta_tlj,
         "fwd_head_ratio": fwd_head_ratio,
         "shoulder_tilt":  shoulder_tilt,
         "torso_lean":     torso_lean,
@@ -271,7 +266,6 @@ def collect_live_session(
             "delta_c":        delta.get("c", 0.0),
             "delta_th":       delta.get("th", 0.0),
             "delta_l":        delta.get("l", 0.0),
-            "delta_tlj":      delta.get("tlj", 0.0),
             "fwd_head_ratio": vision_features[0],
             "shoulder_tilt":  vision_features[1],
             "torso_lean":     vision_features[2],
@@ -379,9 +373,9 @@ def main() -> None:
                 generated += 1
                 print(
                     f"[{generated}/{total}] Generated {label} session {i+1}"
-                    f"/{SYNTHETIC_SESSIONS_PER_LABEL} → {DATA_DIR}/{label}_{sid}.csv"
+                    f"/{SYNTHETIC_SESSIONS_PER_LABEL} -> {DATA_DIR}/{label}_{sid}.csv"
                 )
-        print(f"\n✓ Synthetic generation complete — {generated} CSV files in {DATA_DIR}")
+        print(f"\n[OK] Synthetic generation complete - {generated} CSV files in {DATA_DIR}")
     else:
         # ----------------------------------------------------------------
         # Live collection mode
@@ -415,7 +409,7 @@ def main() -> None:
         )
         df = collect_live_session(args.label, session_id, reader, vp, baseline_tracker)
         out_path = _save_session_csv(df, args.label, session_id)
-        print(f"\n✓ Session saved to {out_path} ({len(df)} samples)")
+        print(f"\n[OK] Session saved to {out_path} ({len(df)} samples)")
 
 
 if __name__ == "__main__":

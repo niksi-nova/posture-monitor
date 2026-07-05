@@ -1,19 +1,18 @@
 /*
   Posture Monitor - ESP32 Firmware
   ---------------------------------
-  - Reads 4 flex sensor voltage dividers (GPIO 32, 33, 34, 35)
+  - Reads 3 flex sensor voltage dividers (GPIO 32, 33, 35)
   - 8x oversampled averaging per channel per sample
   - Outputs JSON over Serial at fixed 50Hz (20ms interval)
   - Listens for 'V' byte over Serial -> fires vibration motor (GPIO27) for a short pulse
 
   JSON format per packet:
-  {"t":1234567890123,"c":2048,"th":2010,"tlj":1990,"l":2050}
+  {"t":1234567890123,"c":2048,"th":2010,"l":2050}
 */
 
 // ---------- Pin definitions ----------
 const int PIN_C = 32;   // Cervical (C5-C7)
 const int PIN_TH = 33;  // Mid-upper thoracic (T1-T8)
-const int PIN_TLJ = 34; // Thoracolumbar junction (T12-L1)
 const int PIN_L = 35;   // Lumbar (L1-L4)
 const int PIN_MOTOR = 27;
 
@@ -46,7 +45,6 @@ void setup() {
   // but setting explicitly for clarity / safety.
   pinMode(PIN_C, INPUT);
   pinMode(PIN_TH, INPUT);
-  pinMode(PIN_TLJ, INPUT);
   pinMode(PIN_L, INPUT);
 
   pinMode(PIN_MOTOR, OUTPUT);
@@ -83,7 +81,6 @@ void loop() {
 
     int val_c = readAveraged(PIN_C);
     int val_th = readAveraged(PIN_TH);
-    int val_tlj = readAveraged(PIN_TLJ);
     int val_l = readAveraged(PIN_L);
 
     unsigned long t = millis();
@@ -96,8 +93,6 @@ void loop() {
     Serial.print(val_th);
     Serial.print(",\"l\":");
     Serial.print(val_l);
-    Serial.print(",\"tlj\":");
-    Serial.print(val_tlj);
     Serial.println("}");
   }
 }

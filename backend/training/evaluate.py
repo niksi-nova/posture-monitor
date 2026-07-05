@@ -32,7 +32,7 @@ from sklearn.metrics import accuracy_score, f1_score, confusion_matrix
 DATA_DIR = Path(__file__).parent.parent / "data" / "raw"
 MODELS_DIR = Path(__file__).parent.parent / "models"
 
-SENSOR_COLS = ["delta_c", "delta_th", "delta_l", "delta_tlj"]
+SENSOR_COLS = ["delta_c", "delta_th", "delta_l"]
 VISION_COLS = ["fwd_head_ratio", "shoulder_tilt", "torso_lean", "ear_sh_ratio"]
 LABEL_COL = "label"
 LABEL_MAP = {"good": 0, "slouch": 1, "forward_head": 2}

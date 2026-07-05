@@ -24,7 +24,7 @@ Usage::
         vision_probs=np.array([0.1, 0.7, 0.2]),
         sensor_probs=np.array([0.2, 0.6, 0.2]),
         visibility=0.85,
-        sensor_delta=np.array([-0.05, -0.12, -0.15, -0.10]),
+        sensor_delta=np.array([-0.05, -0.12, -0.15]),
     )
     print(result["posture"], result["confidence"], result["alert"])
 """
@@ -111,8 +111,7 @@ class FusionEngine:
             sensor_probs:  3-element numpy array from the sensor SVM/MLP model,
                            or None if unavailable.
             visibility:    MediaPipe landmark visibility in [0, 1].
-            sensor_delta:  4-element numpy array of normalised sensor deltas
-                           [delta_c, delta_th, delta_l, delta_tlj].
+                           [delta_c, delta_th, delta_l].
 
         Returns:
             Dict with keys:
@@ -261,28 +260,28 @@ if __name__ == "__main__":
             "v_probs": np.array([0.05, 0.85, 0.10]),
             "s_probs": np.array([0.10, 0.78, 0.12]),
             "vis": 0.90,
-            "delta": np.array([-0.03, -0.15, -0.20, -0.18]),
+            "delta": np.array([-0.03, -0.15, -0.20]),
         },
         {
             "name": "Forward head — low vision quality",
             "v_probs": np.array([0.20, 0.30, 0.50]),
             "s_probs": np.array([0.10, 0.20, 0.70]),
             "vis": 0.20,
-            "delta": np.array([-0.25, -0.05, -0.02, -0.01]),
+            "delta": np.array([-0.25, -0.05, -0.02]),
         },
         {
             "name": "Good posture",
             "v_probs": np.array([0.80, 0.10, 0.10]),
             "s_probs": np.array([0.75, 0.15, 0.10]),
             "vis": 0.95,
-            "delta": np.array([-0.01, 0.00, 0.01, -0.01]),
+            "delta": np.array([-0.01, 0.00, 0.01]),
         },
         {
             "name": "Sensor only (vision=None)",
             "v_probs": None,
             "s_probs": np.array([0.15, 0.75, 0.10]),
             "vis": 0.0,
-            "delta": np.array([-0.05, -0.18, -0.22, -0.17]),
+            "delta": np.array([-0.05, -0.18, -0.22]),
         },
     ]
 

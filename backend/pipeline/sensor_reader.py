@@ -4,11 +4,10 @@ sensor_reader.py
 Simulates ESP32 flex sensor output at 50 Hz in SYNTHETIC mode, or reads real
 serial data in REAL mode.
 
-SYNTHETIC mode generates realistic ADC readings for 4 spinal sensor channels:
+SYNTHETIC mode generates realistic ADC readings for 3 spinal sensor channels:
   c   — cervical spine
   th  — thoracic spine
   l   — lumbar spine
-  tlj — thoracolumbar junction
 
 The module interpolates smoothly between posture states using linear
 interpolation (lerp), adds a slow sinusoidal drift to simulate temperature /
@@ -21,7 +20,6 @@ JSON output contract (same in both modes):
     "c":   <float>  # cervical ADC reading (0-4095)
     "th":  <float>  # thoracic ADC reading
     "l":   <float>  # lumbar ADC reading
-    "tlj": <float>  # thoracolumbar junction ADC reading
   }
 
 RealSensorReader expects the ESP32 to emit one JSON line per sample at 50 Hz.
@@ -79,19 +77,16 @@ POSTURE_TARGETS: Dict[str, Dict[str, Tuple[float, float]]] = {
         "c":   (2250.0, 30.0),   # cervical — near baseline
         "th":  (2150.0, 30.0),   # thoracic — near baseline
         "l":   (2300.0, 30.0),   # lumbar — near baseline
-        "tlj": (2200.0, 30.0),   # thoracolumbar — near baseline
     },
     "slouch": {
         "c":   (2250.0, 50.0),   # cervical stays near baseline
         "th":  (1800.0, 40.0),   # thoracic drops moderately
         "l":   (1600.0, 50.0),   # lumbar drops most
-        "tlj": (1650.0, 50.0),   # thoracolumbar drops significantly
     },
     "forward_head": {
         "c":   (1500.0, 50.0),   # cervical drops most
         "th":  (1900.0, 40.0),   # thoracic drops moderately
         "l":   (2250.0, 30.0),   # lumbar near baseline
-        "tlj": (2200.0, 30.0),   # thoracolumbar near baseline
     },
 }
 
@@ -100,7 +95,7 @@ STATE_SEQUENCE = ["good"]
 STATE_DURATION_S = (8, 20)  # random state duration range in seconds)
 
 # Ordered channel keys — defines array ordering for MA buffers etc.
-_CHANNELS = ["c", "th", "l", "tlj"]
+_CHANNELS = ["c", "th", "l"]
 
 
 # ---------------------------------------------------------------------------
@@ -311,10 +306,10 @@ class SyntheticSensorReader:
         3. Add slow sinusoidal drift (per-channel phase offset).
         4. Sample per-channel Gaussian noise scaled by state std_dev.
         5. Apply moving average.
-        6. Return {t, c, th, l, tlj}.
+        6. Return {t, c, th, l}.
 
         Returns:
-            Dict with keys 't', 'c', 'th', 'l', 'tlj'.
+            Dict with keys 't', 'c', 'th', 'l'.
         """
         now = time.monotonic()
 
@@ -368,7 +363,7 @@ class SyntheticSensorReader:
         Return the next synthetic sensor sample without blocking.
 
         Returns:
-            Sample dict with keys 't', 'c', 'th', 'l', 'tlj'.
+            Sample dict with keys 't', 'c', 'th', 'l'.
         """
         return self._tick()
 
@@ -404,7 +399,7 @@ class RealSensorReader:
     Reads live flex-sensor data from an ESP32 over a serial (UART) connection.
 
     The ESP32 is expected to emit one JSON line per sample, e.g.:
-      {"t": 1.234, "c": 2245, "th": 2153, "l": 2298, "tlj": 2205}
+      {"t": 1.234, "c": 2245, "th": 2153, "l": 2298}
 
     If the serial connection fails, the reader retries with exponential back-off
     up to a maximum back-off interval of 30 seconds.
@@ -466,7 +461,7 @@ class RealSensorReader:
         try:
             data = json.loads(raw_line)
             # Validate expected keys
-            if not all(k in data for k in ("c", "th", "l", "tlj")):
+            if not all(k in data for k in ("c", "th", "l")):
                 logger.debug("Incomplete JSON from ESP32: %s", raw_line)
                 return None
             # Inject elapsed time if ESP32 does not provide it
@@ -586,7 +581,7 @@ if __name__ == "__main__":
         tracker.update(s)
         print(
             f"t={s['t']:6.2f}s  "
-            f"c={s['c']:.0f}  th={s['th']:.0f}  l={s['l']:.0f}  tlj={s['tlj']:.0f}  "
+            f"c={s['c']:.0f}  th={s['th']:.0f}  l={s['l']:.0f}  "
             f"Δc={delta.get('c', 0):+.3f}"
         )
 
