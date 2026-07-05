@@ -13,11 +13,11 @@
 // ---------- Pin definitions ----------
 const int PIN_C = 32;   // Cervical (C5-C7)
 const int PIN_TH = 33;  // Mid-upper thoracic (T1-T8)
-const int PIN_L = 35;   // Lumbar (L1-L4)
+const int PIN_L = 34;   // Lumbar (L1-L4)
 const int PIN_MOTOR = 27;
 
 // ---------- Timing ----------
-const unsigned long SAMPLE_INTERVAL_MS = 20;   // 50Hz
+const unsigned long SAMPLE_INTERVAL_MS = 67;   // 15Hz
 unsigned long lastSampleTime = 0;
 
 // ---------- Motor pulse handling ----------
