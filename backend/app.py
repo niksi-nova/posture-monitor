@@ -53,8 +53,16 @@ LOG_FORMAT: str = "%(asctime)s [%(levelname)s] %(name)s: %(message)s"
 # Duration (seconds) for a single calibration pass
 CALIBRATION_DURATION_S: int = 10
 
-# Python interpreter inside the project venv (falls back to current interpreter)
-_VENV_PYTHON: str = str(Path(sys.executable))
+# Python interpreter inside the project venv.
+# On Windows venvs use Scripts\python.exe; on Unix it's bin/python.
+_VENV_PYTHON: str = str(
+    Path(sys.executable).parent.parent / "venv" / "Scripts" / "python.exe"
+    if sys.platform == "win32"
+    else Path(sys.executable)  # already the venv python when launched from venv
+)
+# Fallback: if the computed path doesn't exist, just use the current interpreter
+if not Path(_VENV_PYTHON).exists():
+    _VENV_PYTHON = str(Path(sys.executable))
 
 # Sensor keys used throughout the application
 SENSOR_KEYS: tuple[str, ...] = ("c", "th", "l", "tlj")
@@ -653,13 +661,13 @@ def _run_training_task(synthetic: bool) -> None:
 
     if synthetic:
         logger.info("Generating synthetic training data …")
-        _run("collect_data.py", "--generate-synthetic")
+        _run("training/collect_data.py", "--generate-synthetic")
 
     logger.info("Training sensor model …")
-    _run("train_sensor.py")
+    _run("training/train_sensor.py")
 
     logger.info("Training vision model …")
-    _run("train_vision.py")
+    _run("training/train_vision.py")
 
     logger.info("Reloading models after training …")
     load_models()

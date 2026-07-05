@@ -1,7 +1,7 @@
 fastapi==0.111.0
 uvicorn[standard]==0.29.0
 websockets==12.0
-mediapipe>=0.10.14
+mediapipe==0.10.14
 opencv-python>=4.9.0
 pyserial>=3.5
 torch>=2.2.0

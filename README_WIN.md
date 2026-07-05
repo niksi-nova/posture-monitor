@@ -52,28 +52,29 @@ The system is designed **hardware-optional**: while the physical shirt and ESP32
 
 ### 1. Clone / open the project
 
-```bash
-cd "aiml el v2/posture_monitor"
+```
+cd posture-monitor
 ```
 
-### 2. One-time setup
+### 2. One-time setup (Windows)
 
-```bash
-chmod +x setup.sh start.sh
-./setup.sh
+```bat
+setup.bat
 ```
 
-This creates a Python venv, installs all dependencies, and installs frontend Node packages. Takes ~3–5 minutes on first run.
+This creates a Python 3.12 venv, installs all Python dependencies, and installs frontend Node packages. Takes ~3–5 minutes on first run.
 
-### 3. Launch everything
+### 3. Launch everything (Windows)
 
-```bash
-./start.sh
+```bat
+start.bat
 ```
 
 - Backend: `http://localhost:8000`
 - Frontend: `http://localhost:5173`
 - API docs: `http://localhost:8000/docs`
+
+> **macOS / Linux**: use `./setup.sh` and `./start.sh` instead (require `chmod +x` first).
 
 ### 4. First-time workflow
 
@@ -138,12 +139,9 @@ posture_monitor/
 │   ├── package.json
 │   └── vite.config.js
 │
-├── setup.sh                       One-time setup script (macOS/Linux)
-├── setup.bat                      One-time setup script (Windows)
-├── start.sh                       Launch both servers (macOS/Linux)
-├── start.bat                      Launch both servers (Windows)
-├── INSTRUCTIONS.md                Hardware integration guide (macOS/Linux)
-├── INSTRUCTIONS_WIN.md            Hardware integration guide (Windows)
+├── setup.sh                       One-time setup script
+├── start.sh                       Launch both servers
+├── INSTRUCTIONS.md                Hardware integration guide
 └── README.md                      This file
 ```
 
@@ -376,16 +374,17 @@ This project is for academic purposes at RV College of Engineering.
 
 ## Troubleshooting
 
-| Symptom                  | Fix                                                       |
-| ------------------------ | --------------------------------------------------------- |
-| `ModuleNotFoundError`    | Activate venv: `source venv/bin/activate`                 |
-| Port 8000 in use         | `lsof -ti:8000 \| xargs kill`                             |
-| Port 5173 in use         | `lsof -ti:5173 \| xargs kill`                             |
-| Camera not found         | Check `CAMERA_INDEX = 0` in `vision_pipeline.py`, try `1` |
-| Training fails (no data) | Run "Generate Synthetic Data" first                       |
-| WebSocket disconnected   | Check backend is running; hard refresh browser            |
-| MediaPipe import error   | `pip install mediapipe --upgrade` inside venv             |
-| `torch` not found        | `pip install torch` inside venv (CPU build, ~200MB)       |
+| Symptom                  | Fix                                                                                                                         |
+| ------------------------ | --------------------------------------------------------------------------------------------------------------------------- | -------------------------------------- |
+| `ModuleNotFoundError`    | Activate venv first: `venv\Scripts\activate` (Windows) or `source venv/bin/activate` (macOS/Linux)                          |
+| Port 8000 in use         | `for /f "tokens=5" %a in ('netstat -aon ^                                                                                   | find ":8000"') do taskkill /PID %a /F` |
+| Port 5173 in use         | Same as above, replace `8000` with `5173`                                                                                   |
+| Camera not found         | Check `CAMERA_INDEX = 0` in `vision_pipeline.py`, try `1`                                                                   |
+| Training fails (no data) | Run "Generate Synthetic Data" first                                                                                         |
+| WebSocket disconnected   | Check backend is running; hard refresh browser                                                                              |
+| MediaPipe import error   | `pip install mediapipe --upgrade` inside venv                                                                               |
+| `torch` not found        | `pip install torch` inside venv (CPU build, ~200MB)                                                                         |
+| Serial port not found    | Open Device Manager → Ports (COM & LPT) — find your ESP32 port; update `SERIAL_PORT` in `backend/pipeline/sensor_reader.py` |
 
 ---
 

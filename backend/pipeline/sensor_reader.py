@@ -46,8 +46,9 @@ logger = logging.getLogger(__name__)
 # ---------------------------------------------------------------------------
 # Constants
 # ---------------------------------------------------------------------------
-SYNTHETIC = True           # Set to False when real ESP32 hardware is connected
-SERIAL_PORT = "/dev/ttyUSB0"   # Change to COM3 on Windows
+SYNTHETIC = False          # Set to False when real ESP32 hardware is connected
+SERIAL_PORT = "COM6"           # Windows: check Device Manager → Ports (COM & LPT)
+                               #          macOS/Linux: use /dev/ttyUSB0 or /dev/tty.SLAB_USBtoUART
 BAUD_RATE = 115_200
 SAMPLE_RATE_HZ = 50          # Target output rate in Hertz
 SAMPLE_PERIOD_S = 1.0 / SAMPLE_RATE_HZ
@@ -63,7 +64,7 @@ DRIFT_AMPLITUDE = 80.0      # ADC-count amplitude of slow sinusoidal drift
 # ---------------------------------------------------------------------------
 # Alert constants
 # ---------------------------------------------------------------------------
-MOTOR_ENABLED = False        # Set True to enable vibration motor via serial
+MOTOR_ENABLED = True         # Set True to enable vibration motor via serial
 # Lerp transition timing
 LERP_MIN_S = 2.0             # Minimum posture transition duration (seconds)
 LERP_MAX_S = 4.0             # Maximum posture transition duration (seconds)

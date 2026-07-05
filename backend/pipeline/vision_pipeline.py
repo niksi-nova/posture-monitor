@@ -31,8 +31,14 @@ import cv2
 import mediapipe as mp
 import numpy as np
 
-mp_drawing = mp.solutions.drawing_utils
-mp_drawing_styles = mp.solutions.drawing_styles
+# ---------------------------------------------------------------------------
+# MediaPipe is imported lazily inside VisionPipeline.__init__ to avoid
+# AttributeError on mediapipe 0.10.x where mp.solutions is not guaranteed
+# to be populated at module import time on all platforms.
+# ---------------------------------------------------------------------------
+mp_pose = None
+mp_drawing = None
+mp_drawing_styles = None
 
 logging.basicConfig(
     level=logging.INFO,
@@ -173,7 +179,21 @@ class VisionPipeline:
 
     def __init__(self) -> None:
         """Initialise MediaPipe pose, sliding window, lock, and control event."""
-        self._pose = mp.solutions.pose.Pose(  # type: ignore[attr-defined]
+        global mp_pose, mp_drawing, mp_drawing_styles  # noqa: PLW0603
+        # Lazy-load mp.solutions here (not at module level) — mediapipe 0.10.x
+        # on Windows only populates mp.solutions after the package has been
+        # fully imported, so accessing it at module level raises AttributeError.
+        if mp_pose is None:
+            try:
+                mp_pose = mp.solutions.pose
+                mp_drawing = mp.solutions.drawing_utils
+                mp_drawing_styles = mp.solutions.drawing_styles
+            except AttributeError as exc:
+                raise RuntimeError(
+                    "Cannot access mp.solutions — your mediapipe installation may be "
+                    "incompatible. Try: pip install mediapipe==0.10.14"
+                ) from exc
+        self._pose = mp_pose.Pose(
             min_detection_confidence=MIN_DETECTION_CONFIDENCE,
             min_tracking_confidence=MIN_TRACKING_CONFIDENCE,
             model_complexity=1,   # 0=lite, 1=full, 2=heavy
@@ -239,11 +259,11 @@ class VisionPipeline:
             timestamp_ms = time.monotonic() * 1_000.0
 
             # Draw landmarks for video feed
-            if results.pose_landmarks:
+            if results.pose_landmarks and mp_drawing and mp_drawing_styles and mp_pose:
                 mp_drawing.draw_landmarks(
                     frame,
                     results.pose_landmarks,
-                    mp.solutions.pose.POSE_CONNECTIONS,
+                    mp_pose.POSE_CONNECTIONS,
                     landmark_drawing_spec=mp_drawing_styles.get_default_pose_landmarks_style(),
                 )
             

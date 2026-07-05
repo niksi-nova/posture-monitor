@@ -8,7 +8,7 @@
 
 Before following this guide, ensure:
 
-- The PostureGuard software stack is installed and working (`./setup.sh` ran clean)
+- The PostureGuard software stack is installed and working (`setup.bat` ran clean)
 - You have successfully trained models on synthetic data and verified the dashboard works
 - Your ESP32 is flashed with the correct firmware (see Step 1)
 - You have the compression shirt with 4 flex sensors sewn in
@@ -44,27 +44,27 @@ The firmware **must** output JSON over USB serial at **115200 baud, 50Hz**, in e
 Open `backend/pipeline/sensor_reader.py`. Near the top of the file, find the constants block (around line 10–20):
 
 ```python
-# ──── CHANGE THESE THREE LINES ─────────────────────────────────────────────
+# ──── CHANGE THESE TWO LINES ───────────────────────────────────────────────
 SYNTHETIC = False          # ← was True — set to False for real hardware
-SERIAL_PORT = "/dev/ttyUSB0"   # ← macOS/Linux: find with `ls /dev/tty*`
-                               #   Windows: use "COM3" (check Device Manager)
-BAUD_RATE = 115200         # ← must match firmware
+SERIAL_PORT = "COM6"       # ← change to whichever COM port your ESP32 appears on
+                           #   (check Device Manager → Ports (COM & LPT))
+BAUD_RATE = 115200         # ← must match firmware (do not change)
 # ───────────────────────────────────────────────────────────────────────────
 ```
 
 **Finding your serial port**:
 
+- **Windows**: Open Device Manager → Ports (COM & LPT) → look for "Silicon Labs CP210x" or "CH340" → note the COM number (e.g., `COM6`)
 - **macOS**: `ls /dev/tty.usbserial-*` or `ls /dev/tty.SLAB_USBtoUART`
 - **Linux**: `ls /dev/ttyUSB*` or `ls /dev/ttyACM*`
-- **Windows**: Open Device Manager → Ports (COM & LPT) → look for "Silicon Labs CP210x" or "CH340"
 
-**Test serial connection before starting the app**:
+**Test serial connection before starting the app (Windows)**:
 
-```bash
-source venv/bin/activate
-python3 -c "
+```bat
+venv\Scripts\activate
+python -c "
 import serial, time
-ser = serial.Serial('/dev/ttyUSB0', 115200, timeout=1)
+ser = serial.Serial('COM6', 115200, timeout=1)
 for _ in range(5):
     line = ser.readline()
     print(line.decode().strip())
@@ -80,7 +80,7 @@ You should see 5 JSON lines. If you see garbage bytes, check baud rate. If you s
 > **Important**: This step overwrites `backend/data/baseline.json` with real hardware values. Do this every time you start a new session or change who is wearing the shirt.
 
 1. Put on the compression shirt. Make sure all 4 sensor connections are secure.
-2. Start the PostureGuard app: `./start.sh`
+2. Start the PostureGuard app: `start.bat`
 3. Open `http://localhost:5173`
 4. The Calibration Modal will appear automatically on first load.
 5. **Sit upright**: spine neutral, shoulders back, look straight ahead at the screen.
@@ -129,14 +129,14 @@ Synthetic training data gives you a working demo, but real data from your actual
 - **Slouch**: Let your spine curve naturally — don't exaggerate. Shoulders roll forward.
 - **Forward head**: Keep your spine relatively straight but push your head forward toward the screen. Think "reading glasses posture."
 
-**Using the CLI** (for automation):
+**Using the CLI** (for automation — Windows):
 
-```bash
-source venv/bin/activate
+```bat
+venv\Scripts\activate
 cd backend
-python training/collect_data.py --label good --session-id person1_session1
-python training/collect_data.py --label slouch --session-id person1_session2
-python training/collect_data.py --label forward_head --session-id person1_session3
+python training\collect_data.py --label good --session-id person1_session1
+python training\collect_data.py --label slouch --session-id person1_session2
+python training\collect_data.py --label forward_head --session-id person1_session3
 ```
 
 ---
@@ -149,13 +149,13 @@ After collecting real training data:
 2. Training takes ~2–3 minutes for both models.
 3. The panel shows live accuracy metrics when done.
 
-**Or via CLI**:
+**Or via CLI (Windows)**:
 
-```bash
-source venv/bin/activate
+```bat
+venv\Scripts\activate
 cd backend
-python training/train_sensor.py
-python training/train_vision.py
+python training\train_sensor.py
+python training\train_vision.py
 ```
 
 **Expected accuracy on real data**: Slightly lower than synthetic (78–82% vs 80–88%) because real sensors have more noise. This is normal. If accuracy is below 70%, check your data collection — ensure each label session is genuinely different postures.
@@ -233,6 +233,13 @@ sudo usermod -aG dialout $USER
 ### ImportError or ModuleNotFoundError on startup
 
 - Make sure you're running from within the virtual environment:
+  **Windows:**
+  ```bat
+  venv\Scripts\activate
+  cd backend
+  uvicorn app:app --reload --port 8000
+  ```
+  **macOS/Linux:**
   ```bash
   source venv/bin/activate
   cd backend
