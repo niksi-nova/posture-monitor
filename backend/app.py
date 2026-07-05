@@ -418,6 +418,21 @@ def _build_broadcast_payload() -> dict:
         "quality": quality_vision,
     }
 
+    # ── Record data if active ────────────────────────────────────────────────
+    global _recording_active, _recording_label, _recording_rows
+    if _recording_active:
+        _recording_rows.append({
+            "timestamp": now_ms,
+            "delta_c": delta.get("c", 0.0),
+            "delta_th": delta.get("th", 0.0),
+            "delta_l": delta.get("l", 0.0),
+            "fwd_head_ratio": vision_features.get("fwd_head_ratio", 1.20),
+            "shoulder_tilt": vision_features.get("shoulder_tilt", 0.02),
+            "torso_lean": vision_features.get("torso_lean", 1.80),
+            "ear_sh_ratio": vision_features.get("ear_sh_ratio", 0.90),
+            "label": _recording_label
+        })
+
     # ── Fusion / inference ───────────────────────────────────────────────────
     posture: str
     confidence: float
