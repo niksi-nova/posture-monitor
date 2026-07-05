@@ -48,7 +48,7 @@ SYNTHETIC = False          # Set to False when real ESP32 hardware is connected
 SERIAL_PORT = "COM6"           # Windows: check Device Manager → Ports (COM & LPT)
                                #          macOS/Linux: use /dev/ttyUSB0 or /dev/tty.SLAB_USBtoUART
 BAUD_RATE = 115_200
-SAMPLE_RATE_HZ = 50          # Target output rate in Hertz
+SAMPLE_RATE_HZ = 15          # Target output rate in Hertz
 SAMPLE_PERIOD_S = 1.0 / SAMPLE_RATE_HZ
 
 # ---------------------------------------------------------------------------

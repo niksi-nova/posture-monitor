@@ -49,7 +49,7 @@ logger = logging.getLogger(__name__)
 # Constants
 # ---------------------------------------------------------------------------
 SESSION_DURATION_S = 60                         # Length of one live collection session
-SAMPLE_RATE_HZ = 50                             # Sensor sample rate
+SAMPLE_RATE_HZ = 15                             # Sensor sample rate
 DATA_DIR = Path(__file__).parent.parent / "data" / "raw"   # Output directory for CSVs
 CLASS_NAMES = ["good", "slouch", "forward_head"]
 

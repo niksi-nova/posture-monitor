@@ -146,7 +146,7 @@ After power on (USB only):
 
 - **Pins:** GPIO 32, 33, 34, 35 (input-only pins, safe for ADC)
 - **Hardware averaging:** Read each pin 8× per sample, take integer average — suppresses high-frequency electrical noise at source
-- **Output rate:** Fixed 50Hz (one JSON packet every 20ms via `delay(20)` equivalent, non-blocking `millis()` timing used in final code)
+- **Output rate:** Fixed 15Hz (one JSON packet every 67ms via `delay(20)` equivalent, non-blocking `millis()` timing used in final code)
 - **Resolution:** 12-bit (0–4095)
 
 ### 3.2 Output Format
@@ -178,7 +178,7 @@ After power on (USB only):
 ...
 23:13:52.528 -> {"t":139484,"c":1710,"th":2085,"l":2284,"tlj":1825}
 ```
-Cervical channel (`c`) shows a clean, isolated bend response (2080 resting → 1170 fully bent) while `th`, `l`, `tlj` remain stable. Packet timing consistent with ~20ms (50Hz) intervals.
+Cervical channel (`c`) shows a clean, isolated bend response (2080 resting → 1170 fully bent) while `th`, `l`, `tlj` remain stable. Packet timing consistent with ~67ms (15Hz) intervals.
 
 ---
 
@@ -231,16 +231,16 @@ posture_monitor/
 
 ### Phase 1 — Hardware & Firmware (Target: Week 1) — ✅ COMPLETE
 
-**Goal:** All 4 sensors reading stable, timestamped ADC values over serial at 50Hz.
+**Goal:** All 4 sensors reading stable, timestamped ADC values over serial at 15Hz.
 
 - [x] Build one voltage divider on breadboard. Verify ADC readings with multimeter and Serial Monitor.
 - [x] Build remaining 3 dividers. Confirm all 4 channels independent.
 - [x] Build motor driver. Verify motor fires on GPIO HIGH, no ADC corruption.
 - [x] ~~Transfer to perfboard~~ — **Team decision: staying on breadboard for the full build.** Skipped by choice, not blocked.
 - [ ] Prepare compression shirt: sew sensor channels, route wiring to waist pocket, mount motor on chest.
-- [x] Flash ESP32 with full sensor firmware. Verify 50Hz JSON stream with timestamps via Serial Monitor.
+- [x] Flash ESP32 with full sensor firmware. Verify 15Hz JSON stream with timestamps via Serial Monitor.
 
-**Exit criteria: MET.** Serial Monitor shows clean JSON at 50Hz. All 4 ADC values change independently when sensors are bent by hand. Motor pulses cleanly on command.
+**Exit criteria: MET.** Serial Monitor shows clean JSON at 15Hz. All 4 ADC values change independently when sensors are bent by hand. Motor pulses cleanly on command.
 
 **Remaining Phase 1 item:** Shirt sewing/mounting — can be done in parallel with Phase 2/3 software work since it doesn't block software development.
 
@@ -303,7 +303,7 @@ posture_monitor/
 | 47kΩ (not 10kΩ) voltage dividers | Better mid-range sensitivity for flex sensor operating range |
 | 4 sensors, all 2.2" (changed from 3×2.2"+1×4") | Adds thoracolumbar junction (T12-L1), where desk-worker slouch originates most often; uniform sizing simplifies calibration |
 | Stay on breadboard (skip perfboard) | Team decision to reduce build overhead for course project scope; accepted tradeoff is higher risk of wire looseness during wear |
-| Fixed 50Hz ESP32 output | Prevents serial buffer saturation; enables predictable sliding window alignment |
+| Fixed 15Hz ESP32 output | Prevents serial buffer saturation; enables predictable sliding window alignment |
 | `millis()` timestamp (not true Unix time) in firmware | ESP32 has no onboard RTC; wall-clock offset will be established in `sensor_reader.py`/downstream scripts for syncing with webcam frames |
 | 10-sample (~200ms) moving average in `sensor_reader.py` | Balanced smoothing — reduces noise without adding much latency; chosen as a low-effort default per team preference |
 | Normalized ratio features (not raw pixel angles) | Scale-invariant; works regardless of webcam distance |
@@ -341,13 +341,13 @@ If you are a language model reading this document to continue a prior conversati
   - All 4 flex sensor voltage dividers built and verified on breadboard.
   - Motor driver circuit (2N2222 + 1N4001 + 1kΩ + 100nF) built and verified — buzzes cleanly on command, no ADC interference (confirmed <±20 count jumps during motor firing).
   - Team decided to **skip perfboard entirely** and keep the final build on breadboard (accepted tradeoff: some risk of wire looseness during wear, to be monitored).
-  - Full firmware (`esp32_sensor.ino`) written and flashed: reads all 4 ADC channels with 8x oversampling, outputs JSON at fixed 50Hz using `millis()`-based (boot-relative, not wall-clock) timestamps, and listens for a `'V'` byte over serial to fire a 300ms motor pulse on GPIO27.
-  - Live-tested: bending S1 produced a clean, isolated drop from ~2080 (resting) to ~1170 (fully bent) while S2–S4 remained stable; timing consistent with 50Hz.
+  - Full firmware (`esp32_sensor.ino`) written and flashed: reads all 4 ADC channels with 8x oversampling, outputs JSON at fixed 15Hz using `millis()`-based (boot-relative, not wall-clock) timestamps, and listens for a `'V'` byte over serial to fire a 300ms motor pulse on GPIO27.
+  - Live-tested: bending S1 produced a clean, isolated drop from ~2080 (resting) to ~1170 (fully bent) while S2–S4 remained stable; timing consistent with 15Hz.
 - **Phase 2 in progress:**
   - `sensor_reader.py` written: connects over serial (auto-detects Windows COM port, falls back to manual `port=` argument), parses JSON (keys: `c`, `th`, `l`, `tlj` — updated from original `s1`–`s4` to match backend expectations), applies a 10-sample (~200ms) moving average per channel, exposes a `stream()` generator and a `send_alert()` method to trigger the motor from Python.
   - `calibration.py` written: prompts user to sit upright, averages readings over 10 seconds, saves `baseline.json` with per-sensor baseline values, timestamp, and sample count. Not yet run/validated on hardware by the team.
   - **Still to do in Phase 2:** implement slow EMA drift correction (alpha = 0.0005/sample), write the normalized deviation vector computation (live − baseline) that Phase 5's fusion step will need, and validate `calibration.py` end-to-end on hardware.
 - **Not yet started:** Phase 3 (vision pipeline), Phase 4 (data collection & training), Phase 5 (fusion), Phase 6 (integration & end-to-end validation). Compression shirt sewing/mounting (remaining Phase 1 hardware item) also not yet done, but doesn't block software work.
-- Key changes from the original project document: added 4th sensor at thoracolumbar junction (now all 4 sensors same 2.2" size), switched to 47kΩ dividers, fixed 50Hz output rate, firmware uses boot-relative `millis()` timestamps (wall-clock sync to be handled downstream in Python), expanded MediaPipe landmarks to include nose and hips, switched from naive concatenation fusion to weighted late fusion, replaced 15-min passive EMA calibration with 10s active calibration + slow EMA drift correction (drift correction itself still pending implementation), and the team chose to stay on breadboard rather than transfer to perfboard.
+- Key changes from the original project document: added 4th sensor at thoracolumbar junction (now all 4 sensors same 2.2" size), switched to 47kΩ dividers, fixed 15Hz output rate, firmware uses boot-relative `millis()` timestamps (wall-clock sync to be handled downstream in Python), expanded MediaPipe landmarks to include nose and hips, switched from naive concatenation fusion to weighted late fusion, replaced 15-min passive EMA calibration with 10s active calibration + slow EMA drift correction (drift correction itself still pending implementation), and the team chose to stay on breadboard rather than transfer to perfboard.
 - The team's ML experience level: intermediate (has coded before, may not have trained sequence models).
 - Files written so far, available for reference: `firmware/esp32_sensor.ino`, `pipeline/sensor_reader.py`, `pipeline/calibration.py`.
