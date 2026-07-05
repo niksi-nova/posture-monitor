@@ -18,7 +18,7 @@ const int PIN_L = 35;   // Lumbar (L1-L4)
 const int PIN_MOTOR = 27;
 
 // ---------- Timing ----------
-const unsigned long SAMPLE_INTERVAL_MS = 20;   // 50Hz
+const unsigned long SAMPLE_INTERVAL_MS = 67;   // 15Hz
 unsigned long lastSampleTime = 0;
 
 // ---------- Motor pulse handling ----------
