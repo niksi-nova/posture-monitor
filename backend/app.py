@@ -143,6 +143,7 @@ def load_models() -> dict[str, bool]:
     except Exception as exc:
         logger.error("Failed to load sensor model: %s", exc)
 
+
     # ── Vision LSTM (PyTorch) ───────────────────────────────────────────────
     vision_model_path = MODELS_DIR / "vision_lstm.pt"
     try:
