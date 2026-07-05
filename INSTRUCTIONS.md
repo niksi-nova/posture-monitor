@@ -19,7 +19,7 @@ Before following this guide, ensure:
 
 The firmware file is specified in the project PRD (`firmware/esp32_sensor.ino`). This file is **not included** in the software repository — it is the hardware team's deliverable.
 
-The firmware **must** output JSON over USB serial at **115200 baud, 15Hz**, in exactly this format:
+The firmware **must** output JSON over USB serial at **115200 baud, 50Hz**, in exactly this format:
 
 ```json
 { "t": 1718203451234, "c": 2140, "th": 1820, "l": 3100, "tlj": 2890 }
@@ -35,7 +35,7 @@ The firmware **must** output JSON over USB serial at **115200 baud, 15Hz**, in e
 
 **Vibration motor**: connected to GPIO 27 (active HIGH). The firmware should activate it when it receives `'V\n'` over serial from the backend (when `MOTOR_ENABLED = True`).
 
-**Verify firmware is working**: Open Arduino Serial Monitor at 115200 baud. You should see a new JSON line every ~67ms (15Hz). The values should be stable in the 1800–2400 range when sitting upright.
+**Verify firmware is working**: Open Arduino Serial Monitor at 115200 baud. You should see a new JSON line every ~20ms (50Hz). The values should be stable in the 1800–2400 range when sitting upright.
 
 ---
 

@@ -199,7 +199,7 @@ def _sensor_thread_fn() -> None:
             if sample is not None:
                 with latest_sensor_lock:
                     latest_sensor_sample = sample
-            time.sleep(1.0 / 15)  # poll at 15 Hz max
+            time.sleep(1.0 / 50)  # poll at 50 Hz max
         except Exception as exc:
             logger.warning("Sensor read error: %s — retrying in 50 ms", exc)
             time.sleep(0.05)

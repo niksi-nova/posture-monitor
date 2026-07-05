@@ -153,7 +153,7 @@ posture_monitor/
 
 ### Sensor Reader (`sensor_reader.py`)
 
-**Synthetic mode** (default while hardware isn't ready) simulates the ESP32's 12-bit ADC output at 15Hz with three posture states:
+**Synthetic mode** (default while hardware isn't ready) simulates the ESP32's 12-bit ADC output at 50Hz with three posture states:
 
 | State        | Cervical (C) | Thoracic (Th) | Lumbar (L) | TLJ       |
 | ------------ | ------------ | ------------- | ---------- | --------- |
@@ -170,7 +170,7 @@ The simulator:
 
 **Real mode** (`SYNTHETIC = False`): Reads JSON from the configured serial port, parses identically, same output contract. See `INSTRUCTIONS.md` for setup.
 
-**Output JSON** (15Hz, matches ESP32 firmware exactly):
+**Output JSON** (50Hz, matches ESP32 firmware exactly):
 
 ```json
 { "t": 1718203451234, "c": 2140, "th": 1820, "l": 3100, "tlj": 2890 }
@@ -191,7 +191,7 @@ A 15-frame sliding window (deque) is maintained thread-safely. If the webcam is 
 
 ### Calibration (`calibration.py`)
 
-Collects 10 seconds (150 sensor samples + up to 300 vision frames) of upright posture data, averages each channel, and saves to `backend/data/baseline.json`. All subsequent sensor readings are expressed as normalized deltas against this baseline:
+Collects 10 seconds (500 sensor samples + up to 300 vision frames) of upright posture data, averages each channel, and saves to `backend/data/baseline.json`. All subsequent sensor readings are expressed as normalized deltas against this baseline:
 
 ```
 delta[sensor] = (live_ADC - baseline_ADC) / baseline_ADC
@@ -323,7 +323,7 @@ Interactive Swagger docs at `http://localhost:8000/docs`.
 
 When the ESP32 + flex sensor shirt is ready:
 
-1. Flash firmware (outputs `{"t":..,"c":..,"th":..,"l":..,"tlj":..}` at 115200 baud, 15Hz)
+1. Flash firmware (outputs `{"t":..,"c":..,"th":..,"l":..,"tlj":..}` at 115200 baud, 50Hz)
 2. In `backend/pipeline/sensor_reader.py`: set `SYNTHETIC = False`, `SERIAL_PORT = "/dev/ttyUSB0"`
 3. Run calibration with shirt on
 4. Collect 2 real sessions per posture label per team member (18 CSVs)
