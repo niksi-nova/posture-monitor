@@ -104,7 +104,7 @@ export function TrainingPanel({ modelsLoaded }) {
     appendLog(synthetic ? 'Generating synthetic data…' : 'Starting training…');
 
     try {
-      const url  = synthetic ? '/api/train?synthetic=true' : '/api/train';
+      const url  = synthetic ? '/api/train?synthetic=true' : '/api/train?synthetic=false';
       const res  = await fetch(url, { method: 'POST' });
       const json = await res.json();
       appendLog(json.message ?? 'Training started on backend');

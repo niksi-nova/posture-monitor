@@ -1,26 +1,26 @@
 {
-  "accuracy": 1.0,
-  "f1_macro": 1.0,
+  "accuracy": 0.625,
+  "f1_macro": 0.5336,
   "confusion_matrix": [
     [
-      598,
+      55,
       0,
       0
     ],
     [
-      0,
-      598,
+      1,
+      70,
       0
     ],
     [
-      0,
-      0,
-      598
+      8,
+      66,
+      0
     ]
   ],
-  "train_epochs": 28,
-  "final_train_loss": 0.0032,
-  "final_val_loss": 0.0,
-  "n_train_windows": 8970,
-  "n_test_windows": 1794
+  "train_epochs": 34,
+  "final_train_loss": 0.3875,
+  "final_val_loss": 0.9732,
+  "n_train_windows": 139,
+  "n_test_windows": 200
 }
