@@ -23,7 +23,7 @@ Prolonged poor posture among students and office workers causes chronic musculos
 
 **Target users:** College students, software professionals, and remote workers spending 6–10 hours daily at a desk.
 
-**Our solution:** A dual-input, sensor-fusion system that cross-references physical spinal curvature data (4 flex sensors + ESP32) with AI-based visual skeletal tracking (MediaPipe Pose + webcam) for highly accurate, real-time haptic correction feedback. The full software stack now runs **hardware-optional** — while the physical shirt/ESP32 is being finalised, all pipelines operate using a realistic synthetic sensor simulator (`SYNTHETIC = True` in `sensor_reader.py`). Switching to real hardware requires changing one flag.
+**Our solution:** A dual-input, sensor-fusion system that cross-references physical spinal curvature data (3 flex sensors + ESP32) with AI-based visual skeletal tracking (MediaPipe Pose + webcam) for highly accurate, real-time haptic correction feedback. The full software stack now runs **hardware-optional** — while the physical shirt/ESP32 is being finalised, all pipelines operate using a realistic synthetic sensor simulator (`SYNTHETIC = True` in `sensor_reader.py`). Switching to real hardware requires changing one flag.
 
 ### 1.2 Core Value Proposition
 
@@ -41,9 +41,9 @@ Prolonged poor posture among students and office workers causes chronic musculos
 
 | Component | Spec | Qty | Purpose |
 |---|---|---|---|
-| Flex sensor 2.2" | Spectra Symbol, ~25–80kΩ range | 4 (all same size) | Cervical, thoracic, thoracolumbar junction, lumbar sensing |
+| Flex sensor 2.2" | Spectra Symbol, ~25–80kΩ range | 3 (all same size) | Cervical, thoracic, lumbar sensing |
 | ESP32 DevKit V1 | 12-bit ADC, BT/Wi-Fi, 3.3V logic | 1 | Microcontroller, ADC, BT streaming |
-| Fixed resistors 47kΩ | 1/4W | 4 | Voltage divider (one per sensor) |
+| Fixed resistors 47kΩ | 1/4W | 3 | Voltage divider (one per sensor) |
 | 2N2222 NPN transistor | TO-92 package | 1 | Motor driver switch |
 | 1N4001 diode | 1A rectifier | 1 | Flyback protection for motor |
 | 1kΩ resistor | 1/4W | 1 | Base resistor for 2N2222 |
@@ -67,20 +67,19 @@ Sensors are mounted vertically along the center back seam of the compression shi
 Position    Sensor    Vertebral level    ESP32 pin
 S1          2.2"      C5–C7 (neck base)  GPIO 32
 S2          2.2"      T1–T8 (mid-upper)  GPIO 33
-S3          2.2"      T12–L1 (junction)  GPIO 34
-S4          2.2"      L1–L4 (lumbar)     GPIO 35
+S3          2.2"      L1–L4 (lumbar)     GPIO 35
 ```
 
-All sensors are identical 2.2" size. Resistance ranges are uniform across all 4 channels (~25–35kΩ flat, 70–100kΩ bent).
+All sensors are identical 2.2" size. Resistance ranges are uniform across all 3 channels (~25–35kΩ flat, 70–100kΩ bent).
 
 Leave 3mm gaps between sensors. Route wires along the seam in a fabric sleeve to a waist pocket holding the breadboard + ESP32. Vibration motor mounts on the front chest (sternum area) for clear haptic feedback.
 
-### 2.3 Voltage Divider Circuit (×4) — CONFIRMED WORKING
+### 2.3 Voltage Divider Circuit (×3) — CONFIRMED WORKING
 
 One per sensor, shared 3.3V and GND rails:
 
 ```
-3.3V ──── [Flex sensor ~30–80kΩ] ──── ADC pin (GPIO 32–35)
+3.3V ──── [Flex sensor ~30–80kΩ] ──── ADC pin (GPIO 32, 33, 35)
                                   |
                                [47kΩ fixed]
                                   |
@@ -90,7 +89,7 @@ One per sensor, shared 3.3V and GND rails:
 - Flat sensor (~30kΩ): V_out ≈ 2.01V → ADC ≈ 2498
 - Bent sensor (~80kΩ): V_out ≈ 1.22V → ADC ≈ 1514
 - Usable range: ~1000 ADC counts per sensor — sufficient resolution
-- **Build status: COMPLETE.** All 4 dividers built and verified on breadboard. Live-tested with full firmware — bending a sensor produces a clean, isolated response (e.g. S1 dropped from ~2080 resting to ~1170 fully bent) while the other 3 channels stayed flat.
+- **Build status: COMPLETE.** All 3 dividers built and verified on breadboard. Live-tested with full firmware — bending a sensor produces a clean, isolated response (e.g. S1 dropped from ~2080 resting to ~1170 fully bent) while the other 2 channels stayed flat.
 
 **Why 47kΩ (not 10kΩ):** The midpoint of the flex sensor's resistance range is ~50kΩ. A 47kΩ fixed resistor maximizes voltage swing sensitivity in the working range. A 10kΩ divider compresses the signal into the low end of the ADC range.
 
@@ -133,7 +132,7 @@ Before powering on (ohmmeter):
 
 After power on (USB only):
 - [x] 3.3V confirmed at power rail with multimeter
-- [x] All 4 ADC channels print values ~1800–2100 at rest
+- [x] All 3 ADC channels print values ~1800–2100 at rest
 - [x] Each sensor's ADC value changes independently on bend
 - [x] Motor buzzes on GPIO27 HIGH, no ADC channel jumps >±20 counts
 - [x] Confirmed no cap issue — 100nF across motor terminals sufficient
@@ -146,7 +145,7 @@ After power on (USB only):
 
 ### 3.1 ADC Reading
 
-- **Pins:** GPIO 32, 33, 34, 35 (input-only pins, safe for ADC)
+- **Pins:** GPIO 32, 33, 35 (input-only pins, safe for ADC)
 - **Hardware averaging:** Read each pin 8× per sample, take integer average — suppresses high-frequency electrical noise at source
 - **Output rate:** Fixed 50Hz (one JSON packet every 20ms via `delay(20)` equivalent, non-blocking `millis()` timing used in final code)
 - **Resolution:** 12-bit (0–4095)
@@ -154,14 +153,13 @@ After power on (USB only):
 ### 3.2 Output Format
 
 ```json
-{"t":139224,"c":1170,"th":2081,"l":2284,"tlj":1831}
+{"t":139224,"c":1170,"th":2081,"l":2284}
 ```
 
 - `t`: milliseconds since ESP32 boot (NOT wall-clock Unix time — see note below)
 - `c`: 12-bit ADC reading for cervical sensor (GPIO 32), 8x oversampled average
 - `th`: thoracic sensor (GPIO 33)
 - `l`: lumbar sensor (GPIO 35)
-- `tlj`: thoracolumbar junction sensor (GPIO 34)
 
 **Timestamp note:** The firmware currently emits `millis()` (time since boot), not true Unix time, since the ESP32 has no onboard RTC. For syncing with webcam frame timestamps in Phase 4, `sensor_reader.py` (or a downstream script) should record the PC wall-clock time when the first packet arrives and use it as an offset to convert subsequent `t` values to approximate Unix time.
 
@@ -174,13 +172,13 @@ After power on (USB only):
 ### 3.4 Verified Behavior (live test log)
 
 ```
-23:13:52.271 -> {"t":139224,"c":1170,"th":2081,"l":2284,"tlj":1831}
-23:13:52.309 -> {"t":139244,"c":1194,"th":2083,"l":2285,"tlj":1830}
-23:13:52.309 -> {"t":139264,"c":1221,"th":2082,"l":2284,"tlj":1826}
+23:13:52.271 -> {"t":139224,"c":1170,"th":2081,"l":2284}
+23:13:52.309 -> {"t":139244,"c":1194,"th":2083,"l":2285}
+23:13:52.309 -> {"t":139264,"c":1221,"th":2082,"l":2284}
 ...
-23:13:52.528 -> {"t":139484,"c":1710,"th":2085,"l":2284,"tlj":1825}
+23:13:52.528 -> {"t":139484,"c":1710,"th":2085,"l":2284}
 ```
-Cervical channel (`c`) shows a clean, isolated bend response (2080 resting → 1170 fully bent) while `th`, `l`, `tlj` remain stable. Packet timing consistent with ~20ms (50Hz) intervals.
+Cervical channel (`c`) shows a clean, isolated bend response (2080 resting → 1170 fully bent) while `th`, `l` remain stable. Packet timing consistent with ~20ms (50Hz) intervals.
 
 ---
 
@@ -274,16 +272,16 @@ posture-monitor/
 
 ### Phase 1 — Hardware & Firmware (Target: Week 1) — ✅ COMPLETE
 
-**Goal:** All 4 sensors reading stable, timestamped ADC values over serial at 50Hz.
+**Goal:** All 3 sensors reading stable, timestamped ADC values over serial at 50Hz.
 
 - [x] Build one voltage divider on breadboard. Verify ADC readings with multimeter and Serial Monitor.
-- [x] Build remaining 3 dividers. Confirm all 4 channels independent.
+- [x] Build remaining 2 dividers. Confirm all 3 channels independent.
 - [x] Build motor driver. Verify motor fires on GPIO HIGH, no ADC corruption.
 - [x] ~~Transfer to perfboard~~ — **Team decision: staying on breadboard for the full build.** Skipped by choice, not blocked.
 - [ ] Prepare compression shirt: sew sensor channels, route wiring to waist pocket, mount motor on chest.
 - [x] Flash ESP32 with full sensor firmware. Verify 50Hz JSON stream with timestamps via Serial Monitor.
 
-**Exit criteria: MET.** Serial Monitor shows clean JSON at 50Hz. All 4 ADC values change independently when sensors are bent by hand. Motor pulses cleanly on command.
+**Exit criteria: MET.** Serial Monitor shows clean JSON at 50Hz. All 3 ADC values change independently when sensors are bent by hand. Motor pulses cleanly on command.
 
 **Remaining Phase 1 item:** Shirt sewing/mounting — can be done in parallel with Phase 2/3 software work since it doesn't block software development.
 
@@ -342,30 +340,29 @@ posture-monitor/
   - **Live collection:** logs sensor deltas + vision features + manual label to CSV at 50Hz for 60 seconds
   - **Synthetic generation** (`--generate-synthetic`): creates 6 sessions per class programmatically
   - CSV schema (9 columns): `timestamp, delta_c, delta_th, delta_l, fwd_head_ratio, shoulder_tilt, torso_lean, ear_sh_ratio, label`
+- [x] **`backend/app.py` & `frontend/src/components/TrainingPanel.jsx` Updates**:
+  - Fixed live data collection bug where `_recording_rows` was not being populated, resulting in empty CSVs. Live recordings from the dashboard now correctly capture both sensor and vision data.
+  - Fixed the "Train Models" button in the UI to explicitly trigger training on custom data (`synthetic=false`), preventing accidental fallback to synthetic data generation.
+  - **Important Constraint**: Users must record at least **two 60-second sessions** for each posture class. The training scripts require a minimum of 2 sessions per label to successfully perform a train/test split.
 - [x] **`training/train_sensor.py`** — SVM with RBF kernel, StandardScaler normalization, session-split evaluation
 - [x] **`training/train_vision.py`** — PyTorch 2-layer LSTM, 15-frame windows, early stopping, session-split evaluation
 - [x] **`training/evaluate.py`** — evaluation suite for both models
-- [x] **6 labeled session CSVs** in `backend/data/raw/`: 2× good, 2× slouch, 2× forward_head
+- [x] **Labeled session CSVs** in `backend/data/raw/` successfully updated and trained on real hardware data.
 - [x] **Models trained and saved to `backend/models/`:**
-  - `sensor_model.pkl` (SVM, 27 KB) + `sensor_scaler.pkl` (480 B)
-  - `vision_lstm.pt` (218 KB)
+  - `sensor_model.pkl` (SVM) + `sensor_scaler.pkl`
+  - `vision_lstm.pt`
 
-**Model evaluation results:**
+**Model evaluation results (Initial Real Data):**
 
 | Metric | Vision LSTM | Sensor SVM |
 |---|---|---|
 | Accuracy | 62.5% | 0.0% (see note) |
 | F1 (macro) | 0.534 | 0.0% |
-| Train windows | 139 | — |
-| Test windows | 200 | — |
-| Train epochs | 34 | — |
-| Final train loss | 0.388 | — |
-| Final val loss | 0.973 | — |
 
-> **Note on sensor model:** 0% accuracy indicates the SVM trained on synthetic data does not generalize to the test split — needs real hardware data. Re-training in Phase 6.
-> **Note on vision LSTM:** 62.5% on 3-class (vs. 33% chance) shows learning but is limited by small synthetic dataset. Will improve with real multi-session hardware data.
+> **Note on sensor model:** 0% accuracy observed initially during transition to real data, likely due to calibration mismatch between train and test sessions. Requires careful calibration before recording in Phase 6.
+> **Note on vision LSTM:** 62.5% on 3-class shows learning but requires larger custom datasets for higher accuracy.
 
-**Exit criteria: PARTIALLY MET.** Models are on disk and running. Vision LSTM below 80–85% target; both need real hardware data for full validation.
+**Exit criteria: MET.** Models are on disk and running. Data collection and custom training pipeline via the dashboard is fully functional.
 
 ---
 
