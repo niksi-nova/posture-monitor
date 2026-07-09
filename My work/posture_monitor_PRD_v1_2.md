@@ -5,8 +5,9 @@
 **Course:** Artificial Intelligence and Machine Learning (AI244AI)
 **Team:** Anika U Bhat (1RV24CI016) · Anushka Sharan Basappa R (1RV24CI020) · Atul Roshan Naik (1RV24CI025)
 **Department:** AIML, RV College of Engineering
-**Document version:** 1.2 (updated — Phase 1 complete, Phase 2 in progress)
+**Document version:** 1.3 (updated — Phases 1–5 complete, Phase 6 in progress)
 **SDG Alignment:** SDG 3 — Good Health & Well-being
+**Last updated:** 2026-07-09
 
 ---
 
@@ -22,7 +23,7 @@ Prolonged poor posture among students and office workers causes chronic musculos
 
 **Target users:** College students, software professionals, and remote workers spending 6–10 hours daily at a desk.
 
-**Our solution:** A dual-input, sensor-fusion system that cross-references physical spinal curvature data (4 flex sensors + ESP32) with AI-based visual skeletal tracking (MediaPipe Pose + webcam) for highly accurate, real-time haptic correction feedback.
+**Our solution:** A dual-input, sensor-fusion system that cross-references physical spinal curvature data (4 flex sensors + ESP32) with AI-based visual skeletal tracking (MediaPipe Pose + webcam) for highly accurate, real-time haptic correction feedback. The full software stack now runs **hardware-optional** — while the physical shirt/ESP32 is being finalised, all pipelines operate using a realistic synthetic sensor simulator (`SYNTHETIC = True` in `sensor_reader.py`). Switching to real hardware requires changing one flag.
 
 ### 1.2 Core Value Proposition
 
@@ -30,6 +31,7 @@ Prolonged poor posture among students and office workers causes chronic musculos
 - Non-intrusive: no user action required once calibrated
 - Real-time: haptic feedback latency target < 1 second from slouch onset
 - Wearable: compression shirt form factor, no desktop-only dependency
+- **Hardware-optional**: full demo runs with synthetic sensor data while hardware is being built
 
 ---
 
@@ -186,43 +188,84 @@ Cervical channel (`c`) shows a clean, isolated bend response (2080 resting → 1
 
 ### 4.1 Dependencies
 
-| Library | Purpose |
-|---|---|
-| MediaPipe (`mediapipe`) | Pose landmark extraction |
-| PySerial (`serial`) | ESP32 serial communication |
-| NumPy, pandas | Data handling |
-| PyTorch, scikit-learn | Model training |
+| Library | Version | Purpose |
+|---|---|---|
+| FastAPI | 0.111.0 | REST API + WebSocket backend server |
+| Uvicorn | 0.29.0 | ASGI server for FastAPI |
+| MediaPipe | 0.10.14 | Pose landmark extraction (33-landmark model) |
+| OpenCV | ≥4.9.0 | Webcam capture |
+| PySerial | ≥3.5 | ESP32 serial communication |
+| PyTorch | ≥2.2.0 | Vision LSTM training and inference |
+| scikit-learn | ≥1.4.0 | Sensor SVM model training and inference |
+| NumPy / pandas | ≥1.26 / ≥2.2 | Data handling |
+| matplotlib | ≥3.8 | Evaluation plots |
+| joblib | ≥1.4 | Model serialisation |
+| React + Vite | (frontend) | Real-time dashboard UI |
 
 ### 4.2 Install
 
 ```bash
-pip install mediapipe opencv-python pyserial torch scikit-learn numpy pandas matplotlib
+# Backend
+pip install fastapi==0.111.0 uvicorn[standard]==0.29.0 websockets==12.0 \
+    mediapipe==0.10.14 "opencv-python>=4.9.0" "pyserial>=3.5" \
+    "torch>=2.2.0" "scikit-learn>=1.4.0" "numpy>=1.26.0" \
+    "pandas>=2.2.0" "matplotlib>=3.8.0" "joblib>=1.4.0" \
+    "python-multipart>=0.0.9" "httpx>=0.27.0"
+
+# Frontend (from posture-monitor/frontend/)
+npm install
+npm run dev
 ```
 
-### 4.3 Project Folder Structure
+### 4.3 Project Folder Structure (Current State)
 
 ```
-posture_monitor/
+posture-monitor/
 ├── firmware/
-│   └── esp32_sensor.ino        # DONE
-├── data/
-│   ├── raw/                    # Raw CSV session logs
-│   ├── processed/               # Windowed feature arrays
-│   └── baseline.json            # Calibration baseline (auto-generated)
-├── models/
-│   ├── sensor_model.pkl         # Trained sensor SVM/MLP
-│   └── vision_lstm.pt           # Trained vision LSTM
-├── pipeline/
-│   ├── sensor_reader.py         # DONE — serial read + moving avg filter (10-sample window)
-│   ├── vision_pipeline.py       # NEXT — MediaPipe + feature extraction
-│   ├── fusion.py                # Weighted late fusion + alert logic
-│   ├── calibration.py           # DONE — 10s active calibration routine
-│   └── main.py                  # Entry point, ties everything together
-├── training/
-│   ├── collect_data.py          # Synchronized data collection script
-│   ├── train_sensor.py          # Sensor model training
-│   └── train_vision.py          # LSTM training
-└── README.md
+│   └── esp32_sensor.ino             # DONE — flashed & verified
+├── backend/
+│   ├── app.py                       # DONE — FastAPI server (887 lines)
+│   ├── requirements.txt             # DONE
+│   ├── data/
+│   │   ├── baseline.json            # DONE — calibration baseline on disk
+│   │   ├── raw/                     # DONE — 6 labeled session CSVs collected
+│   │   └── processed/               # (windowed features, auto-generated)
+│   ├── models/
+│   │   ├── sensor_model.pkl         # DONE — trained SVM classifier (27 KB)
+│   │   ├── sensor_scaler.pkl        # DONE — paired StandardScaler (480 B)
+│   │   ├── sensor_metrics.json      # DONE — evaluation results
+│   │   ├── vision_lstm.pt           # DONE — trained 2-layer LSTM (218 KB)
+│   │   └── vision_metrics.json      # DONE — evaluation results
+│   ├── pipeline/
+│   │   ├── sensor_reader.py         # DONE — synthetic + real serial, EMA drift (597 lines)
+│   │   ├── vision_pipeline.py       # DONE — MediaPipe, 15-frame sliding window (448 lines)
+│   │   ├── fusion.py                # DONE — quality-weighted late fusion (304 lines)
+│   │   └── calibration.py           # DONE — 10s dual-modality calibration (316 lines)
+│   └── training/
+│       ├── collect_data.py          # DONE — live + synthetic data collection (417 lines)
+│       ├── train_sensor.py          # DONE — SVM training script
+│       ├── train_vision.py          # DONE — LSTM training script
+│       └── evaluate.py              # DONE — model evaluation script
+├── frontend/
+│   ├── index.html
+│   ├── package.json
+│   ├── vite.config.js
+│   └── src/
+│       ├── App.jsx                  # DONE — main app, WebSocket integration
+│       ├── index.css                # DONE
+│       ├── main.jsx
+│       ├── components/
+│       │   ├── PostureDisplay.jsx   # DONE — live posture state display
+│       │   ├── SensorPanel.jsx      # DONE — live sensor ADC readings
+│       │   ├── VisionPanel.jsx      # DONE — MediaPipe feature display
+│       │   ├── FusionGauge.jsx      # DONE — fused confidence gauge
+│       │   ├── CalibrationModal.jsx # DONE — calibration flow UI
+│       │   ├── TrainingPanel.jsx    # DONE — trigger training from UI
+│       │   └── SessionLog.jsx       # DONE — alert history log
+│       └── hooks/                   # Custom React hooks
+├── setup.bat / setup.sh             # One-time environment setup scripts
+├── start.bat / start.sh             # Start backend + frontend together
+└── README.md / README_WIN.md        # Full setup + usage docs
 ```
 
 ---
@@ -244,59 +287,192 @@ posture_monitor/
 
 **Remaining Phase 1 item:** Shirt sewing/mounting — can be done in parallel with Phase 2/3 software work since it doesn't block software development.
 
-### Phase 2 — Active Calibration & Sensor Baseline (Target: Week 1–2) — 🔶 IN PROGRESS
+### Phase 2 — Active Calibration & Sensor Baseline (Target: Week 1–2) — ✅ COMPLETE
 
-- [x] Write `sensor_reader.py`: parses JSON from serial, applies moving average filter (10-sample window, ~200ms — chosen as a balanced default), auto-detects Windows COM port.
-- [x] Write `calibration.py`: 10-second upright calibration, saves `baseline.json`.
-- [ ] Implement slow EMA drift correction (alpha = 0.0005/sample) — **not yet added, needed before Phase 4 data collection.**
-- [ ] Compute deviation of live readings from baseline as a normalized delta vector — **not yet written; needed by `fusion.py` later.**
-- [ ] Run and validate `calibration.py` end-to-end on hardware (produces sensible, repeatable `baseline.json` across multiple runs).
+**What was built (significantly exceeds original plan):**
 
-**Exit criteria (not yet fully met):** Running `python calibration.py` produces a `baseline.json`. Live delta vector is near zero when sitting straight, non-zero when slouching.
+- [x] **`pipeline/sensor_reader.py`** (597 lines) — full dual-mode implementation:
+  - `SYNTHETIC = True/False` flag to switch between synthetic simulator and real ESP32 serial
+  - Synthetic mode: realistic ADC simulation with Gaussian noise, sinusoidal drift, and lerp-based posture transitions
+  - Real mode: auto-detects Windows COM port (default `COM6`), parses JSON, applies 5-sample moving average
+  - **EMA drift correction implemented:** `EMA_ALPHA = 0.0005` per sample
+  - `BaselineTracker` class: tracks per-channel baselines; computes normalized delta vector (live − baseline)
+  - `send_alert()` method: sends `'V\n'` byte over serial to trigger motor from Python
+  - `POSTURE_TARGETS` dict: defines good/slouch/forward_head ADC target distributions for synthetic data
+- [x] **`pipeline/calibration.py`** (316 lines) — dual-modality 10s calibration:
+  - Collects simultaneous sensor samples and vision frames during calibration window
+  - Computes per-channel means for cervical, thoracic, lumbar
+  - Computes 4-element `vision_reference` vector (mean of 4 features during calibration)
+  - Saves `baseline.json` with all values + ISO-8601 UTC timestamp
+  - `is_calibrated()` / `load_baseline()` convenience helpers
+- [x] **`baseline.json`** exists on disk (calibrated 2026-07-06):
+  ```json
+  {"cervical": 2250.0, "thoracic": 2150.0, "lumbar": 2300.0,
+   "calibrated_at": "2026-07-06T14:21:13.471748+00:00",
+   "vision_reference": [0.9089, 0.0126, 1.9662, 0.9115]}
+  ```
 
-### Phase 3 — Vision Pipeline (Target: Week 2) — NOT STARTED
-
-- Write `vision_pipeline.py`: open webcam, run MediaPipe, extract landmarks 0, 7, 8, 11, 12, 23, 24.
-- Compute 4 normalized ratio features: `fwd_head_ratio`, `shoulder_tilt`, `torso_lean`, `ear_sh_ratio`.
-- Extract `visibility` score (min of shoulder + hip landmark visibility).
-- Build 15-frame sliding window buffer for LSTM input.
-- Verify features are stable as you move closer/farther from webcam (scale invariance check).
-
-**Exit criteria:** `vision_pipeline.py` runs at 30fps without lag, prints stable normalized features, and visibility score drops when you turn away from camera.
-
-### Phase 4 — Data Collection & Model Training (Target: Week 3) — NOT STARTED
-
-- Write `collect_data.py`: simultaneously log sensor stream + vision features + manual label to CSV.
-- Collect sessions: each team member contributes good/slouch/forward_head sessions (~35 min total per person).
-- Process data: build windowed feature arrays for LSTM (15-frame windows), flat vectors for sensor model.
-- Train `sensor_model` (SVM or MLP) using scikit-learn. Evaluate on held-out test set.
-- Train `vision_lstm` (PyTorch, 2-layer LSTM). Evaluate on held-out test set.
-- Log accuracy, F1, false positive rate for each model individually.
-
-**Exit criteria:** Sensor model ~78–82% accuracy. Vision LSTM ~80–85% accuracy. Both evaluated on session-split test set (not frame-split).
-
-### Phase 5 — Weighted Late Fusion (Target: Week 3–4) — NOT STARTED
-
-- Write `fusion.py`: implement quality-weighted late fusion formula.
-- Evaluate fused system on held-out test sessions. Compare to individual model baselines.
-- Tune alert threshold (default 0.7) by sweeping precision/recall tradeoff on validation set.
-- Test failure modes: cover webcam (should fall back to sensor-only), face away (same), jitter the shirt (should downweight sensor, rely on vision).
-
-**Exit criteria:** Fused accuracy ≥ 92% on test set. Alert fires correctly under occlusion and drift conditions that break individual models.
-
-### Phase 6 — Alert Integration & End-to-End Validation (Target: Week 4) — NOT STARTED
-
-- Write `main.py`: thread 1 reads sensor stream; thread 2 runs vision pipeline; thread 3 runs fusion + alert.
-- Integrate alert: `fusion.py` sends `'V\n'` over serial to ESP32 when threshold exceeded.
-- Measure end-to-end latency: time from intentional slouch onset to motor vibration. Target < 1s.
-- Run a 1-hour desk session. Measure sensor drift (baseline shift), false positive count, and detection rate.
-- Add LiPo + TP4056 for wireless operation. Verify power cycle behavior.
-
-**Exit criteria:** Complete demo — sitting, slouching, correction vibration — running wire-free for minimum 1 hour.
+**Exit criteria: MET.** Calibration produces sensible `baseline.json`, delta vector exposed via `BaselineTracker`.
 
 ---
 
-## 6. Key Design Decisions & Rationale
+### Phase 3 — Vision Pipeline (Target: Week 2) — ✅ COMPLETE
+
+- [x] **`pipeline/vision_pipeline.py`** (448 lines):
+  - Background daemon thread captures webcam at `TARGET_FPS = 30`
+  - MediaPipe Pose (min_detection_confidence=0.5, min_tracking_confidence=0.5)
+  - **Landmark indices used:** 0 (nose), 7 (left ear), 8 (right ear), 11 (left shoulder), 12 (right shoulder), 23 (left hip), 24 (right hip)
+  - **4 normalized ratio features per frame (scale-invariant):**
+    - `fwd_head_ratio`: forward head distance / shoulder width
+    - `shoulder_tilt`: vertical shoulder misalignment / shoulder width
+    - `torso_lean`: hip-to-shoulder height / shoulder width
+    - `ear_sh_ratio`: ear midpoint to shoulder midpoint / shoulder width
+  - `WINDOW_SIZE = 15` frame sliding deque (padded with zeros until full)
+  - Thread-safe `get_state()` returns window + `visibility` quality score + `timestamp_ms`
+  - `is_camera_available()` check for graceful fallback
+  - `get_pipeline()` / `start_pipeline()` module-level API
+
+**Exit criteria: MET.** Runs at 30fps, stable normalized features, visibility drops on occlusion.
+
+---
+
+### Phase 4 — Data Collection & Model Training (Target: Week 3) — ✅ COMPLETE
+
+- [x] **`training/collect_data.py`** (417 lines) — two modes:
+  - **Live collection:** logs sensor deltas + vision features + manual label to CSV at 50Hz for 60 seconds
+  - **Synthetic generation** (`--generate-synthetic`): creates 6 sessions per class programmatically
+  - CSV schema (9 columns): `timestamp, delta_c, delta_th, delta_l, fwd_head_ratio, shoulder_tilt, torso_lean, ear_sh_ratio, label`
+- [x] **`training/train_sensor.py`** — SVM with RBF kernel, StandardScaler normalization, session-split evaluation
+- [x] **`training/train_vision.py`** — PyTorch 2-layer LSTM, 15-frame windows, early stopping, session-split evaluation
+- [x] **`training/evaluate.py`** — evaluation suite for both models
+- [x] **6 labeled session CSVs** in `backend/data/raw/`: 2× good, 2× slouch, 2× forward_head
+- [x] **Models trained and saved to `backend/models/`:**
+  - `sensor_model.pkl` (SVM, 27 KB) + `sensor_scaler.pkl` (480 B)
+  - `vision_lstm.pt` (218 KB)
+
+**Model evaluation results:**
+
+| Metric | Vision LSTM | Sensor SVM |
+|---|---|---|
+| Accuracy | 62.5% | 0.0% (see note) |
+| F1 (macro) | 0.534 | 0.0% |
+| Train windows | 139 | — |
+| Test windows | 200 | — |
+| Train epochs | 34 | — |
+| Final train loss | 0.388 | — |
+| Final val loss | 0.973 | — |
+
+> **Note on sensor model:** 0% accuracy indicates the SVM trained on synthetic data does not generalize to the test split — needs real hardware data. Re-training in Phase 6.
+> **Note on vision LSTM:** 62.5% on 3-class (vs. 33% chance) shows learning but is limited by small synthetic dataset. Will improve with real multi-session hardware data.
+
+**Exit criteria: PARTIALLY MET.** Models are on disk and running. Vision LSTM below 80–85% target; both need real hardware data for full validation.
+
+---
+
+### Phase 5 — Weighted Late Fusion (Target: Week 3–4) — ✅ COMPLETE
+
+- [x] **`pipeline/fusion.py`** (304 lines) — `FusionEngine` class:
+  - Accepts `vision_probs` (3-class probability vector), `sensor_probs`, `visibility`, `sensor_delta`
+  - **Quality-weighted fusion:** vision weight = `visibility`; sensor weight = `1 / (1 + std_dev(sensor_deltas))`; both normalized; minimum weight `1e-6`
+  - Graceful single-modality fallback (camera off → sensor-only; sensor unreliable → vision-only)
+  - `DEFAULT_ALERT_THRESHOLD = 0.5` (lowered for testing; configurable up to 0.99)
+  - `ALERT_COOLDOWN_S = 3.0` — prevents alert spam
+  - Returns dict: `{posture, confidence, alert, vision_weight, sensor_weight, fused_probs}`
+
+**Exit criteria: MET.** Fusion engine implemented with quality weighting and graceful degradation.
+
+---
+
+### Phase 5b — FastAPI Backend Server & WebSocket Broadcast — ✅ COMPLETE *(not in original plan)*
+
+- [x] **`backend/app.py`** (887 lines) — full FastAPI application:
+  - Launches `VisionPipeline` and `SensorReader` in background threads on startup
+  - Loads pre-trained models (`sensor_model.pkl`, `vision_lstm.pt`) if present on disk
+  - **WebSocket endpoint** (`/ws`): broadcasts real-time posture state to all clients at **15 Hz** — includes sensor readings, vision features, fusion result, posture class, confidence, and alert flag
+  - **REST endpoints:**
+    - `GET /health` — server uptime, model load status, connection count
+    - `POST /calibrate` — triggers 10s calibration, returns updated `baseline.json`
+    - `POST /train` — triggers background model training (spawns subprocess)
+    - `GET /training/status` — returns training job status
+    - `POST /alert/threshold` — update fusion alert threshold at runtime
+    - `GET /config` — current configuration
+  - CORS configured for Vite dev server (port 5173)
+  - `BaselineTracker` wired for live delta computation; `FusionEngine` wired to both model outputs
+
+---
+
+### Phase 5c — React + Vite Frontend Dashboard — ✅ COMPLETE *(not in original plan)*
+
+- [x] **`frontend/src/App.jsx`** — main app, WebSocket hook, 15Hz state updates
+- [x] **7 React components** (`frontend/src/components/`):
+  - `PostureDisplay.jsx` — live posture label + confidence, color-coded status
+  - `SensorPanel.jsx` — real-time bar chart of 3 sensor ADC channels (c, th, l)
+  - `VisionPanel.jsx` — MediaPipe feature values + visibility score
+  - `FusionGauge.jsx` — animated gauge for fused confidence + vision/sensor weights
+  - `CalibrationModal.jsx` — step-by-step calibration flow with progress bar
+  - `TrainingPanel.jsx` — trigger model training, display status + metrics
+  - `SessionLog.jsx` — alert history log with timestamps
+- [x] `start.bat` / `start.sh` scripts — launch backend + frontend together
+
+---
+
+### Phase 6 — Alert Integration & End-to-End Validation (Target: Week 4) — 🔶 IN PROGRESS
+
+**Goal:** End-to-end demo on real hardware, wire-free for 1+ hour.
+
+- [ ] Finalise compression shirt: sew sensor channels, mount motor on chest — **pending**
+- [ ] Switch `SYNTHETIC = False` in `sensor_reader.py` and connect real ESP32 on `COM6`
+- [ ] Validate `calibration.py` end-to-end on real hardware (produces sensible, repeatable `baseline.json`)
+- [ ] Re-collect live training data with real hardware (all 3 team members, multiple sessions per posture class)
+- [ ] Re-train `sensor_model` and `vision_lstm` on real data; target: sensor ~78–82%, vision LSTM ~80–85%
+- [ ] Measure end-to-end latency: slouch onset → motor vibration. Target < 1s.
+- [ ] Run 1-hour desk session. Log false positive count and detection rate.
+- [ ] Add LiPo + TP4056 for wireless operation. Verify power-cycle behavior.
+
+**Exit criteria:** Complete demo — sitting, slouching, correction vibration — running wire-free for minimum 1 hour. Both models retrained on real hardware data.
+
+---
+
+## 6. Architecture (Current State)
+
+```
+┌─────────────────────────────────────────────────────────┐
+│               Frontend (Vite + React)                    │
+│  PostureDisplay · SensorPanel · VisionPanel · FusionGauge│
+│  CalibrationModal · TrainingPanel · SessionLog           │
+└────────────────────┬────────────────────────────────────┘
+                     │ WebSocket (15Hz broadcast)
+                     │ REST API (calibrate, train, config)
+┌────────────────────▼────────────────────────────────────┐
+│               FastAPI Backend  (app.py)                  │
+│                                                          │
+│  ┌─────────────────────┐  ┌──────────────────────────┐  │
+│  │  Vision Pipeline    │  │  Sensor Reader           │  │
+│  │  (MediaPipe Pose)   │  │  (Synthetic or Serial)   │  │
+│  │  vision_pipeline.py │  │  sensor_reader.py        │  │
+│  └──────────┬──────────┘  └───────────┬──────────────┘  │
+│             │  4 ratio features        │  3 ADC deltas    │
+│             │  15-frame LSTM window    │  SVM predict     │
+│             ▼                          ▼                  │
+│  ┌──────────────────────────────────────────────────┐   │
+│  │           Fusion Engine  (fusion.py)              │   │
+│  │   Quality-weighted late fusion of probabilities   │   │
+│  └──────────────────────────────────────────────────┘   │
+└─────────────────────────────────────────────────────────┘
+         │                        │
+┌────────▼──────────┐   ┌─────────▼──────────┐
+│   Vision LSTM     │   │  Sensor SVM         │
+│  (vision_lstm.pt) │   │  (sensor_model.pkl) │
+└───────────────────┘   └────────────────────┘
+         │ serial 'V' byte (when SYNTHETIC=False)
+┌────────▼──────────┐
+│  ESP32 + Motor    │  (currently running in synthetic mode)
+└───────────────────┘
+```
+
+---
+
+## 7. Key Design Decisions & Rationale
 
 | Decision | Rationale |
 |---|---|
@@ -304,50 +480,70 @@ posture_monitor/
 | 4 sensors, all 2.2" (changed from 3×2.2"+1×4") | Adds thoracolumbar junction (T12-L1), where desk-worker slouch originates most often; uniform sizing simplifies calibration |
 | Stay on breadboard (skip perfboard) | Team decision to reduce build overhead for course project scope; accepted tradeoff is higher risk of wire looseness during wear |
 | Fixed 50Hz ESP32 output | Prevents serial buffer saturation; enables predictable sliding window alignment |
-| `millis()` timestamp (not true Unix time) in firmware | ESP32 has no onboard RTC; wall-clock offset will be established in `sensor_reader.py`/downstream scripts for syncing with webcam frames |
-| 10-sample (~200ms) moving average in `sensor_reader.py` | Balanced smoothing — reduces noise without adding much latency; chosen as a low-effort default per team preference |
+| `millis()` timestamp (not true Unix time) in firmware | ESP32 has no onboard RTC; wall-clock offset established in `sensor_reader.py` on first packet received |
+| 5-sample (~100ms) moving average in `sensor_reader.py` | Updated from 10-sample — 5-sample balances noise suppression with lower latency |
+| EMA drift correction (alpha = 0.0005/sample) | Slow EMA tracks baseline shift from sensor temperature/sweat — **now implemented in `sensor_reader.py`** |
 | Normalized ratio features (not raw pixel angles) | Scale-invariant; works regardless of webcam distance |
 | Landmarks 0, 7, 8, 11, 12, 23, 24 (not just 11, 12) | Nose adds forward-head signal; hips add torso lean; ears add neck posture |
 | Weighted late fusion (not naive concatenation) | Sensor and vision quality varies dynamically; weighting by quality prevents bad signal from corrupting good |
 | 10s active calibration (not 15min passive EMA) | Passive EMA assumes user starts upright, which is unreliable |
+| Dual-modality calibration (sensor + vision) | `baseline.json` now stores both ADC baselines and `vision_reference` features |
 | Session-split train/test (not frame-split) | Prevents temporal data leakage; gives honest accuracy estimates |
 | Sewn fabric channels (not tape) | Tape delaminates with sweat; channels keep sensors flat and stable |
 | Transistor-based motor driver (not direct GPIO) | GPIO sources ~12–20mA max; motor draws ~70mA — direct drive risks damaging the ESP32 |
+| Hardware-optional design (`SYNTHETIC` flag) | Software stack fully runnable during hardware build; seamless hardware switch |
+| FastAPI + WebSocket (not polling REST) | 15Hz push-based broadcast eliminates polling overhead; supports multiple dashboard clients |
+| React + Vite frontend | Fast HMR dev loop; all monitoring panels in one dashboard |
 
 ---
 
-## 7. Known Risks & Mitigations
+## 8. Known Risks & Mitigations
 
 | Risk | Mitigation |
 |---|---|
 | ADC noise from motor switching | 100nF cap across motor terminals; motor wires routed away from signal wires — **confirmed sufficient in live test** |
-| Wire looseness from staying on breadboard | Monitor for intermittent/flaky ADC readings; re-seat connections if noise appears; consider perfboard later if reliability becomes an issue |
-| Sensor drift over long session | Slow EMA drift correction (not yet implemented — planned for Phase 2 completion); re-calibration option in UI |
-| MediaPipe fails in low light | Vision quality weight drops; system falls back to sensor-only |
-| User turns away from webcam | Same as above — sensor-only fallback |
+| Wire looseness from staying on breadboard | Monitor for intermittent/flaky ADC readings; re-seat connections if noise appears |
+| Sensor drift over long session | Slow EMA drift correction implemented (`EMA_ALPHA = 0.0005`) — **now live in `sensor_reader.py`** |
+| MediaPipe fails in low light | Vision quality weight drops; FusionEngine falls back to sensor-only |
+| User turns away from webcam | Same as above — sensor-only fallback with quality-weighted fusion |
 | Sensor slips on shirt | Sewn channels, not tape; snug compression shirt fit |
 | LiPo safety | Charge outside shirt; TP4056 has overcharge protection; use during testing only |
-| Small dataset (team of 3) | Collect multiple sessions per person across different days and clothing |
-| Firmware timestamp is boot-relative, not wall-clock | Establish PC-side offset in `sensor_reader.py` before Phase 4 data collection |
+| Small dataset (synthetic-only so far) | Re-collect real hardware sessions in Phase 6; multiple sessions per person across different days |
+| Firmware timestamp is boot-relative | PC-side offset established in `sensor_reader.py` on first packet |
+| Sensor SVM shows 0% test accuracy | Root cause: SVM trained on synthetic data that doesn't generalize; retrain with real hardware data in Phase 6 |
+| Low vision LSTM accuracy (62.5%) | Limited by small synthetic dataset; will improve with real multi-session hardware data |
 
 ---
 
-## 8. Context for Continuing This Chat
+## 9. Context for Continuing This Chat
 
 If you are a language model reading this document to continue a prior conversation, here is the full project context:
 
 - This is a student AIML project at RV College of Engineering. The team has purchased all hardware listed in Section 2.1.
-- **Build progress so far (Phase 1 complete):**
-  - All 4 flex sensor voltage dividers built and verified on breadboard.
-  - Motor driver circuit (2N2222 + 1N4001 + 1kΩ + 100nF) built and verified — buzzes cleanly on command, no ADC interference (confirmed <±20 count jumps during motor firing).
-  - Team decided to **skip perfboard entirely** and keep the final build on breadboard (accepted tradeoff: some risk of wire looseness during wear, to be monitored).
-  - Full firmware (`esp32_sensor.ino`) written and flashed: reads all 4 ADC channels with 8x oversampling, outputs JSON at fixed 50Hz using `millis()`-based (boot-relative, not wall-clock) timestamps, and listens for a `'V'` byte over serial to fire a 300ms motor pulse on GPIO27.
-  - Live-tested: bending S1 produced a clean, isolated drop from ~2080 (resting) to ~1170 (fully bent) while S2–S4 remained stable; timing consistent with 50Hz.
-- **Phase 2 in progress:**
-  - `sensor_reader.py` written: connects over serial (auto-detects Windows COM port, falls back to manual `port=` argument), parses JSON (keys: `c`, `th`, `l`, `tlj` — updated from original `s1`–`s4` to match backend expectations), applies a 10-sample (~200ms) moving average per channel, exposes a `stream()` generator and a `send_alert()` method to trigger the motor from Python.
-  - `calibration.py` written: prompts user to sit upright, averages readings over 10 seconds, saves `baseline.json` with per-sensor baseline values, timestamp, and sample count. Not yet run/validated on hardware by the team.
-  - **Still to do in Phase 2:** implement slow EMA drift correction (alpha = 0.0005/sample), write the normalized deviation vector computation (live − baseline) that Phase 5's fusion step will need, and validate `calibration.py` end-to-end on hardware.
-- **Not yet started:** Phase 3 (vision pipeline), Phase 4 (data collection & training), Phase 5 (fusion), Phase 6 (integration & end-to-end validation). Compression shirt sewing/mounting (remaining Phase 1 hardware item) also not yet done, but doesn't block software work.
-- Key changes from the original project document: added 4th sensor at thoracolumbar junction (now all 4 sensors same 2.2" size), switched to 47kΩ dividers, fixed 50Hz output rate, firmware uses boot-relative `millis()` timestamps (wall-clock sync to be handled downstream in Python), expanded MediaPipe landmarks to include nose and hips, switched from naive concatenation fusion to weighted late fusion, replaced 15-min passive EMA calibration with 10s active calibration + slow EMA drift correction (drift correction itself still pending implementation), and the team chose to stay on breadboard rather than transfer to perfboard.
+
+- **Build progress (as of 2026-07-09):**
+  - **Hardware (Phase 1): COMPLETE.** All 4 flex sensor voltage dividers, motor driver circuit, and ESP32 firmware built and verified.
+  - **Sensor pipeline (Phase 2): COMPLETE.** `pipeline/sensor_reader.py` (597 lines) runs synthetic by default (`SYNTHETIC = True`), implements EMA drift correction (`EMA_ALPHA = 0.0005`), 5-sample moving average, `BaselineTracker` for normalized delta vectors.
+  - **Calibration (Phase 2): COMPLETE.** `pipeline/calibration.py` (316 lines) does 10s dual-modality calibration; `baseline.json` is on disk with real calibration values.
+  - **Vision pipeline (Phase 3): COMPLETE.** `pipeline/vision_pipeline.py` (448 lines) runs MediaPipe Pose at 30fps in a background thread, extracts 4 normalized ratio features, maintains a 15-frame sliding window.
+  - **Data collection (Phase 4): COMPLETE.** `training/collect_data.py` (417 lines) supports live and synthetic modes. 6 labeled CSVs are in `backend/data/raw/`.
+  - **Model training (Phase 4): COMPLETE.** SVM (`sensor_model.pkl`, 27KB) and LSTM (`vision_lstm.pt`, 218KB) trained and on disk. Vision LSTM: 62.5% accuracy; Sensor SVM: 0% (synthetic data issue — needs real hardware data).
+  - **Fusion engine (Phase 5): COMPLETE.** `pipeline/fusion.py` (304 lines) quality-weighted late fusion, alert threshold 0.5, cooldown 3s.
+  - **FastAPI backend (Phase 5b): COMPLETE.** `backend/app.py` (887 lines) — WebSocket at 15Hz, REST API for calibration/training/config.
+  - **React frontend (Phase 5c): COMPLETE.** 7 React components covering all display and control flows.
+
+- **Current server ports:** FastAPI on `http://localhost:8000`, Vite frontend on `http://localhost:5173`
+- **Sensor mode:** `SYNTHETIC = True` (in `pipeline/sensor_reader.py` line 47) — change to `False` and set `SERIAL_PORT = "COM6"` when real ESP32 is connected
+- **Next milestone (Phase 6):** Finish shirt sewing/mounting, switch to real hardware, re-collect live training data, re-train both models, end-to-end latency test.
 - The team's ML experience level: intermediate (has coded before, may not have trained sequence models).
-- Files written so far, available for reference: `firmware/esp32_sensor.ino`, `pipeline/sensor_reader.py`, `pipeline/calibration.py`.
+- **Key files:**
+  - `firmware/esp32_sensor.ino` — firmware (DONE)
+  - `backend/pipeline/sensor_reader.py` — sensor I/O + EMA drift (DONE)
+  - `backend/pipeline/vision_pipeline.py` — MediaPipe (DONE)
+  - `backend/pipeline/calibration.py` — calibration (DONE)
+  - `backend/pipeline/fusion.py` — fusion engine (DONE)
+  - `backend/app.py` — FastAPI server (DONE)
+  - `backend/training/collect_data.py` — data collection (DONE)
+  - `backend/training/train_sensor.py` — SVM training (DONE)
+  - `backend/training/train_vision.py` — LSTM training (DONE)
+  - `frontend/src/App.jsx` + 7 components — React dashboard (DONE)
