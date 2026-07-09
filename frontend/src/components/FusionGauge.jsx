@@ -133,6 +133,7 @@ export function FusionGauge({ fusion, posture, confidence }) {
   const probs    = fusion?.probabilities  ?? {};
   const vW       = fusion?.vision_weight  ?? 0.53;
   const sW       = fusion?.sensor_weight  ?? 0.47;
+  const explanation = fusion?.explanation;
 
   const wrapStyle = {
     display: 'flex',
@@ -246,6 +247,94 @@ export function FusionGauge({ fusion, posture, confidence }) {
           <ProbRow label="Slouch"       prob={probs.slouch       ?? (posture === 'slouch'       ? conf : 0.05)} color="var(--purple)" />
           <ProbRow label="Forward Head" prob={probs.forward_head ?? (posture === 'forward_head' ? conf : 0.05)} color="var(--purple-light)" />
         </div>
+        {explanation && (
+          <>
+            <div style={dividerStyle} />
+            <div
+              style={{
+                padding: "12px",
+                borderRadius: "10px",
+                background: "var(--cream-dark)",
+              }}
+            >
+              <p
+                style={{
+                  fontSize: "0.75rem",
+                  fontWeight: 600,
+                  marginBottom: "8px",
+              }}
+              >
+                Explainable AI
+              </p>
+              <div style={{ fontSize: "0.8rem" }}>
+                <strong>Most Important Sensor:</strong><br />
+                {explanation.most_important_sensor}
+              </div>
+              <div
+                style={{
+                  marginTop: "10px",
+                  fontSize: "0.75rem",
+                  color: "var(--text-light)",
+                }}
+              >
+                <div style={{ marginTop: "12px" }}>
+                  <strong>Vision Frame Importance</strong>
+
+                  {explanation?.vision?.saliency?.map((v, i) => (
+                    <div
+                      key={i}
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        margin: "6px 0",
+                      }}
+                    >
+                      <div
+                        style={{
+                          width: "60px",
+                          fontSize: "0.72rem",
+                        }}
+                      >
+                        {`${(((explanation.vision.saliency.length - 1 - i) / 30)).toFixed(2)} s ago`}
+                      </div>
+
+                      <div
+                        style={{
+                          flex: 1,
+                          height: "10px",
+                          background: "#eee",
+                          borderRadius: "8px",
+                          overflow: "hidden",
+                          marginLeft: "8px",
+                        }}
+                      >
+                        <div
+                          style={{
+                            width: `${(v / Math.max(...explanation.vision.saliency)) * 100}%`,
+                            height: "100%",
+                            background: "#85BCF6",
+                            transition: "0.3s",
+                          }}
+                        />
+                      </div>
+
+                      <div
+                        style={{
+                          width: "55px",
+                          textAlign: "right",
+                          fontSize: "0.7rem",
+                          marginLeft: "10px",
+                        }}
+                      >
+                        {v.toFixed(2)}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </>
+        )}
       </div>
     </div>
   );
