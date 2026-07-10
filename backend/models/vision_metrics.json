@@ -1,6 +1,6 @@
 {
-  "accuracy": 0.625,
-  "f1_macro": 0.5336,
+  "accuracy": 0.753,
+  "f1_macro": 0.5759,
   "confusion_matrix": [
     [
       55,
@@ -13,14 +13,14 @@
       0
     ],
     [
-      8,
-      66,
+      10,
+      30,
       0
     ]
   ],
-  "train_epochs": 34,
-  "final_train_loss": 0.3875,
-  "final_val_loss": 0.9732,
-  "n_train_windows": 139,
-  "n_test_windows": 200
+  "train_epochs": 16,
+  "final_train_loss": 0.3173,
+  "final_val_loss": 1.1557,
+  "n_train_windows": 362,
+  "n_test_windows": 166
 }

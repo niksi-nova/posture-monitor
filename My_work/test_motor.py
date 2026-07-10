@@ -9,6 +9,8 @@ time.sleep(2)  # wait for serial connection to stabilize
 
 print("Sending vibration command...")
 ser.write(b"V\n")
+ser.flush()
+time.sleep(1)  # Wait for the motor to finish buzzing before closing!
 print("Done!")
 
 ser.close()
