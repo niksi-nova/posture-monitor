@@ -367,6 +367,10 @@ class SyntheticSensorReader:
         """
         return self._tick()
 
+    def trigger_motor(self, duration_ms: int = 500) -> None:
+        """Dummy method for synthetic mode."""
+        pass
+
     def run(self, callback: Callable[[Dict[str, float]], None]) -> None:
         """
         Blocking loop: call _tick() at SAMPLE_RATE_HZ and pass each sample to callback.
@@ -516,6 +520,10 @@ class RealSensorReader:
                 logger.error("Cannot open serial port: %s", exc)
                 return None
         return self._read_line(self._ser)
+
+    def trigger_motor(self, duration_ms: int = 500) -> None:
+        """Send vibration trigger to the ESP32."""
+        send_motor_alert(self._ser, duration_ms)
 
 
 # ---------------------------------------------------------------------------

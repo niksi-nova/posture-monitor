@@ -516,6 +516,13 @@ def _build_broadcast_payload() -> dict:
             }
         weights = {"vision": 0.0, "sensor": 1.0}
 
+    # Trigger haptic feedback via ESP32 if an alert was raised (and not on cooldown)
+    if alert and sensor_reader is not None:
+        try:
+            sensor_reader.trigger_motor()
+        except AttributeError:
+            logger.warning("sensor_reader does not support trigger_motor()")
+
     fusion_payload = {
         "weights": weights,
         "probabilities": probabilities,
