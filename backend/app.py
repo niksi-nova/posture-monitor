@@ -439,6 +439,7 @@ def _build_broadcast_payload() -> dict:
     alert: bool
     probabilities: dict[str, float]
     weights: dict[str, float]
+    explanation = {}
 
     if fusion_engine is not None and (_models_loaded["sensor"] or _models_loaded["vision"]):
         try:
@@ -490,8 +491,19 @@ def _build_broadcast_payload() -> dict:
             alert = fusion_result["alert"]
             probabilities = fusion_result["probabilities"]
             weights = fusion_result["weights"]
+
+            from explain import generate_explanation
+
+            explanation = generate_explanation(
+                delta_arr,
+                sensor_probs,
+                vision_probs,
+                vision_model=vision_model,
+                vision_input=x
+            )
         except Exception as exc:
-            logger.debug("Fusion inference error: %s — using rule-based fallback", exc)
+            import traceback
+            traceback.print_exc()
             posture, confidence, alert = _rule_based_posture(delta)
             probabilities = {posture: confidence}
             weights = {"vision": 0.5, "sensor": 0.5}
@@ -526,6 +538,7 @@ def _build_broadcast_payload() -> dict:
     fusion_payload = {
         "weights": weights,
         "probabilities": probabilities,
+        "explanation": explanation,
     }
 
     return {
